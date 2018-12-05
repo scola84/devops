@@ -1,0 +1,15 @@
+{
+  "name": "@scola/devops",
+  "version": "0.0.0",
+  "description": "DevOps",
+  "repository": "github:scola84/devops",
+  "author": "M.C. van den Boogaart <scola@kvdb.name>",
+  "license": "MIT",
+  "main": "./index.js",
+  "jsnext:main": "./index.js",
+  "dependencies": {
+    "@scola/ssh": "^1.0.1",
+    "@scola/worker": "^2.9.2",
+    "bytes": "^3.0.0"
+  }
+}
