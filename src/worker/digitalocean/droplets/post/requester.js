@@ -4,19 +4,24 @@ export default class PostDigitaloceanDropletsRequester extends Worker {
   act(box, data) {
     const options = this.filter(box, data);
 
+    this.check(options, ['token', 'droplet_id']);
+
+    const token = this.sprintf('Bearer %(token)s', options);
+    const path = this.sprintf('/v2/droplets/%(droplet_id)s/actions', options);
+
     const request = {
       extra: {
         box,
         data
       },
       headers: {
-        'Authorization': `Bearer ${options.token}`,
+        'Authorization': token,
         'Content-Type': 'application/json'
       },
       method: 'POST',
       url: {
         hostname: 'api.digitalocean.com',
-        path: '/v2/droplets'
+        path
       }
     };
 

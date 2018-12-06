@@ -1,6 +1,6 @@
 import { Worker } from '@scola/worker';
 
-export default class PostDigitaloceanActionsParser extends Worker {
+export default class PostDigitaloceanFloatingipsParser extends Worker {
   act(response, data, callback) {
     const extra = response.request.extra;
     const box = extra.box;

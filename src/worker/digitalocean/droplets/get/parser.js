@@ -2,12 +2,14 @@ import { Worker } from '@scola/worker';
 import { parse } from 'bytes';
 
 export default class GetDigitaloceanDropletsParser extends Worker {
-  act(response, data, callback) {
-    const extra = response.request.extra;
-    const box = extra.box;
+  static merge(box, data, responseData) {
+    const mode = responseData.droplets ? 'multi' : 'single';
 
-    const remotes = data.droplets ? data.droplets : [data.droplet];
-    const locals = this.filter(box, extra.data);
+    const remotes = mode === 'multi' ?
+      responseData.droplets : [responseData.droplet];
+
+    const locals = mode === 'multi' ?
+      data : [data];
 
     locals.forEach((local) => {
       let found = null;
@@ -20,8 +22,6 @@ export default class GetDigitaloceanDropletsParser extends Worker {
 
       if (found === null) {
         local.vps.actions.create = true;
-      } else {
-        this.merge(box, data, local);
       }
     });
 
@@ -36,7 +36,7 @@ export default class GetDigitaloceanDropletsParser extends Worker {
 
       if (found !== null) {
         try {
-          this._check(found, remote);
+          GetDigitaloceanDropletsParser.check(found, remote);
         } catch (error) {
           found.vps.status = 'error';
           found.error = error;
@@ -53,31 +53,22 @@ export default class GetDigitaloceanDropletsParser extends Worker {
       }
     });
 
-    this.pass(box, locals, callback);
+    return mode === 'multi' ? locals : locals.shift();
   }
 
-  err(response, error, callback) {
-    const extra = response.request.extra;
-    const box = extra.box;
-
-    error.data = extra.data;
-
-    this.fail(box, error, callback);
+  static check(local, remote) {
+    GetDigitaloceanDropletsParser.checkId(local, remote);
+    GetDigitaloceanDropletsParser.checkStatus(local, remote);
+    GetDigitaloceanDropletsParser.checkNetwork(local, remote);
+    GetDigitaloceanDropletsParser.checkRegion(local, remote);
+    GetDigitaloceanDropletsParser.checkSize(local, remote);
   }
 
-  _check(local, remote) {
-    this._checkId(local, remote);
-    this._checkStatus(local, remote);
-    this._checkNetwork(local, remote);
-    this._checkRegion(local, remote);
-    this._checkSize(local, remote);
-  }
-
-  _checkId(local, remote) {
+  static checkId(local, remote) {
     local.vps.id = remote.id;
   }
 
-  _checkNetwork(local, remote) {
+  static checkNetwork(local, remote) {
     const v4 = remote.networks.v4 || [];
     const map = { public: 'eth0', private: 'eth1' };
     let ifc = null;
@@ -106,14 +97,14 @@ export default class GetDigitaloceanDropletsParser extends Worker {
     }
   }
 
-  _checkRegion(local, remote) {
+  static checkRegion(local, remote) {
     if (local.vps.region !== remote.region.slug) {
       throw new Error('Regiions do not match' +
         ` (local=${local.vps.region}, remote=${remote.region.slug})`);
     }
   }
 
-  _checkSize(local, remote) {
+  static checkSize(local, remote) {
     if (local.vps.size !== remote.size_slug) {
       if (remote.region.sizes.indexOf(local.vps.size) === -1) {
         throw new Error('Size not available' +
@@ -132,7 +123,27 @@ export default class GetDigitaloceanDropletsParser extends Worker {
     }
   }
 
-  _checkStatus(local, remote) {
+  static checkStatus(local, remote) {
     local.vps.status = remote.status;
+  }
+
+  act(response, data, callback) {
+    const extra = response.request.extra;
+    const box = extra.box;
+    const responseData = data;
+
+    data = this.filter(box, extra.data);
+    data = this.merge(box, data, responseData);
+
+    this.pass(box, data, callback);
+  }
+
+  err(response, error, callback) {
+    const extra = response.request.extra;
+    const box = extra.box;
+
+    error.data = extra.data;
+
+    this.fail(box, error, callback);
   }
 }

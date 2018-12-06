@@ -3,10 +3,12 @@ import {
   DeleteDigitaloceanDropletParser,
   GetDigitaloceanDropletsParser,
   GetDigitaloceanDropletsRequester,
-  PostDigitaloceanActionsParser,
-  PostDigitaloceanActionsRequester,
+  GetDigitaloceanFloatingipsParser,
+  GetDigitaloceanFloatingipsRequester,
   PostDigitaloceanDropletsParser,
-  PostDigitaloceanDropletsRequester
+  PostDigitaloceanDropletsRequester,
+  PostDigitaloceanFloatingipsParser,
+  PostDigitaloceanFloatingipsRequester
 } from './src/worker';
 
 import {
@@ -28,10 +30,12 @@ export {
   DeleteDigitaloceanDropletParser,
   GetDigitaloceanDropletsParser,
   GetDigitaloceanDropletsRequester,
-  PostDigitaloceanActionsParser,
-  PostDigitaloceanActionsRequester,
+  GetDigitaloceanFloatingipsParser,
+  GetDigitaloceanFloatingipsRequester,
   PostDigitaloceanDropletsParser,
-  PostDigitaloceanDropletsRequester
+  PostDigitaloceanDropletsRequester,
+  PostDigitaloceanFloatingipsParser,
+  PostDigitaloceanFloatingipsRequester
 };
 
 export {

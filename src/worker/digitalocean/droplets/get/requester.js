@@ -4,7 +4,10 @@ export default class GetDigitaloceanDropletsRequester extends Worker {
   act(box, data) {
     const options = this.filter(box, data);
 
-    const postfix = options.id ? '/' + options.id : '';
+    this.check(options, ['token']);
+
+    const token = this.sprintf('Bearer %(token)s', options);
+    const path = this.sprintf('/v2/droplets%(droplet_id)s', options);
 
     const request = {
       extra: {
@@ -12,13 +15,13 @@ export default class GetDigitaloceanDropletsRequester extends Worker {
         data
       },
       headers: {
-        'Authorization': `Bearer ${options.token}`,
+        'Authorization': token,
         'Content-Type': 'application/json'
       },
       method: 'GET',
       url: {
         hostname: 'api.digitalocean.com',
-        path: `/v2/droplets${postfix}`,
+        path,
         query: options.query
       }
     };

@@ -8,12 +8,14 @@ export default function unattendedUpgrades() {
 
   const update = new Commander({
     description: 'Update unattended-upgrades',
-    command: [
-      copy('/var/node/platform/devops/templates/10periodic',
-        '/etc/apt/apt.conf.d/10periodic'),
-      chmod('/etc/apt/apt.conf.d/10periodic', '0644'),
-      chown('/etc/apt/apt.conf.d/10periodic', 'root', 'root')
-    ]
+    command: (box, data) => {
+      return [
+        copy(data.services.upgrades['10periodic'],
+          '/etc/apt/apt.conf.d/10periodic'),
+        chmod('/etc/apt/apt.conf.d/10periodic', '0644'),
+        chown('/etc/apt/apt.conf.d/10periodic', 'root', 'root')
+      ];
+    }
   });
 
   install
