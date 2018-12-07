@@ -1,14 +1,9 @@
 import {
-  DeleteDigitaloceanDropletRequester,
-  DeleteDigitaloceanDropletParser,
-  GetDigitaloceanDropletsParser,
-  GetDigitaloceanDropletsRequester,
-  GetDigitaloceanFloatingipsParser,
-  GetDigitaloceanFloatingipsRequester,
-  PostDigitaloceanDropletsParser,
-  PostDigitaloceanDropletsRequester,
-  PostDigitaloceanFloatingipsParser,
-  PostDigitaloceanFloatingipsRequester
+  DigitaloceanDropletsDeleter,
+  DigitaloceanDropletsGetter,
+  DigitaloceanDropletsPoster,
+  DigitaloceanFloatingipsGetter,
+  DigitaloceanFloatingipsPoster
 } from './src/worker';
 
 import {
@@ -26,16 +21,11 @@ import {
 } from './src/helper';
 
 export {
-  DeleteDigitaloceanDropletRequester,
-  DeleteDigitaloceanDropletParser,
-  GetDigitaloceanDropletsParser,
-  GetDigitaloceanDropletsRequester,
-  GetDigitaloceanFloatingipsParser,
-  GetDigitaloceanFloatingipsRequester,
-  PostDigitaloceanDropletsParser,
-  PostDigitaloceanDropletsRequester,
-  PostDigitaloceanFloatingipsParser,
-  PostDigitaloceanFloatingipsRequester
+  DigitaloceanDropletsDeleter,
+  DigitaloceanDropletsGetter,
+  DigitaloceanDropletsPoster,
+  DigitaloceanFloatingipsGetter,
+  DigitaloceanFloatingipsPoster
 };
 
 export {

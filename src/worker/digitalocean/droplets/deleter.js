@@ -1,13 +1,13 @@
 import { Worker } from '@scola/worker';
 
-export default class GetDigitaloceanFloatingipsRequester extends Worker {
+export default class DigitaloceanDropletDeleter extends Worker {
   act(box, data) {
     const options = this.filter(box, data);
 
-    this.check(options, ['token']);
+    this.check(options, ['token', 'droplet_id']);
 
     const token = this.sprintf('Bearer %(token)s', options);
-    const path = this.sprintf('/v2/floating_ips%(ip)s', options);
+    const path = this.sprintf('/v2/droplets/%(droplet_id)s', options);
 
     const request = {
       extra: {
@@ -18,7 +18,7 @@ export default class GetDigitaloceanFloatingipsRequester extends Worker {
         'Authorization': token,
         'Content-Type': 'application/json'
       },
-      method: 'GET',
+      method: 'DELETE',
       url: {
         hostname: 'api.digitalocean.com',
         path

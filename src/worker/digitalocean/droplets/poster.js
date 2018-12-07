@@ -1,13 +1,13 @@
 import { Worker } from '@scola/worker';
 
-export default class PostDigitaloceanFloatingipsRequester extends Worker {
+export default class DigitaloceanDropletsPoster extends Worker {
   act(box, data) {
     const options = this.filter(box, data);
 
-    this.check(options, ['token', 'ip']);
+    this.check(options, ['token', 'droplet_id']);
 
     const token = this.sprintf('Bearer %(token)s', options);
-    const path = this.sprintf('/v2/floating_ips/%(ip)s/actions', options);
+    const path = this.sprintf('/v2/droplets/%(droplet_id)s/actions', options);
 
     const request = {
       extra: {
