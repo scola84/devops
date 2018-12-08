@@ -22,8 +22,12 @@ export default class DigitaloceanDropletsGetter extends Worker {
 
     this.check(options, ['token']);
 
-    const token = this.sprintf('Bearer %(token)s', options);
-    const path = this.sprintf('/v2/droplets%(droplet_id)s', options);
+    const path = this.format('/', [
+      '/v2/droplets',
+      options.droplet_id
+    ]);
+
+    const token = this.format('Bearer %(token)s', options);
 
     const request = {
       extra: {
@@ -57,7 +61,7 @@ function mergeLocals(locals, remotes) {
     });
 
     if (found === null) {
-      local.vps.actions.create = true;
+      local.server.actions.create = true;
     }
   });
 }
@@ -80,14 +84,14 @@ function mergeRemotes(locals, remotes) {
         checkRegion(found, remote);
         checkSize(found, remote);
       } catch (error) {
-        found.vps.status = 'error';
+        found.server.status = 'error';
         found.error = error;
       }
     } else {
       locals.push({
-        vps: {
+        server: {
           actions: {
-            remove: true
+            delete: true
           },
           id: remote.id
         }
@@ -97,7 +101,7 @@ function mergeRemotes(locals, remotes) {
 }
 
 function checkId(local, remote) {
-  local.vps.id = remote.id;
+  local.server.id = remote.id;
 }
 
 function checkNetwork(local, remote) {
@@ -108,42 +112,42 @@ function checkNetwork(local, remote) {
   v4.forEach((network) => {
     ifc = map[network.type];
 
-    if (local.vps.networks.v4[ifc]) {
-      if (local.vps.networks.v4[ifc] !== network.ip_address) {
+    if (local.server.networks.v4[ifc]) {
+      if (local.server.networks.v4[ifc] !== network.ip_address) {
         throw new Error('IP addresses do not match' +
-          ` (local=${local.vps.networks.v4[ifc]}` +
+          ` (local=${local.server.networks.v4[ifc]}` +
           `, remote=${network.ip_address})`);
       }
     }
 
-    local.vps.networks.v4[ifc] = network.ip_address;
+    local.server.networks.v4[ifc] = network.ip_address;
   });
 
-  if (local.vps.networks.v4.eth1 === '') {
+  if (local.server.networks.v4.eth1 === '') {
     if (remote.region.features.indexOf('private_networking') === -1) {
       throw new Error('Private networking not available' +
         ` (remote=${remote.region.features})`);
     }
 
-    local.vps.actions.enable_private_networking = true;
+    local.server.actions.enable_private_networking = true;
   }
 }
 
 function checkRegion(local, remote) {
-  if (local.vps.region !== remote.region.slug) {
-    throw new Error('Regiions do not match' +
-      ` (local=${local.vps.region}, remote=${remote.region.slug})`);
+  if (local.server.region !== remote.region.slug) {
+    throw new Error('Regions do not match' +
+      ` (local=${local.server.region}, remote=${remote.region.slug})`);
   }
 }
 
 function checkSize(local, remote) {
-  if (local.vps.size !== remote.size_slug) {
-    if (remote.region.sizes.indexOf(local.vps.size) === -1) {
+  if (local.server.size !== remote.size_slug) {
+    if (remote.region.sizes.indexOf(local.server.size) === -1) {
       throw new Error('Size not available' +
-        ` (local=${local.vps.size}, remote=${remote.region.sizes})`);
+        ` (local=${local.server.size}, remote=${remote.region.sizes})`);
     }
 
-    const [, , localSize] = local.vps.size.split('-');
+    const [, , localSize] = local.server.size.split('-');
     const [, , remoteSize] = remote.size_slug.split('-');
 
     if (parse(localSize) < parse(remoteSize)) {
@@ -151,10 +155,10 @@ function checkSize(local, remote) {
         ` (local=${localSize}, remote=${remoteSize})`);
     }
 
-    local.vps.actions.resize = true;
+    local.server.actions.resize = true;
   }
 }
 
 function checkStatus(local, remote) {
-  local.vps.status = remote.status;
+  local.server.status = remote.status;
 }

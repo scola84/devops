@@ -6,8 +6,12 @@ export default class DigitaloceanDropletDeleter extends Worker {
 
     this.check(options, ['token', 'droplet_id']);
 
-    const token = this.sprintf('Bearer %(token)s', options);
-    const path = this.sprintf('/v2/droplets/%(droplet_id)s', options);
+    const path = this.format('/', [
+      '/v2/droplets',
+      options.droplet_id
+    ]);
+
+    const token = this.format('Bearer %(token)s', options);
 
     const request = {
       extra: {

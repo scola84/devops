@@ -4,8 +4,8 @@ export default class DigitaloceanFloatingipsGetter extends Worker {
   static merge(box, data, responseData) {
     const ip = responseData.floating_ip;
 
-    if (ip.droplet && ip.droplet.id !== data.vps.id) {
-      data.vps.actions.assign_floating_ip = true;
+    if (ip.droplet === null || ip.droplet.id !== data.server.id) {
+      data.server.actions.assign_floating_ip = true;
     }
 
     return data;
@@ -16,8 +16,12 @@ export default class DigitaloceanFloatingipsGetter extends Worker {
 
     this.check(options, ['token']);
 
-    const token = this.sprintf('Bearer %(token)s', options);
-    const path = this.sprintf('/v2/floating_ips%(ip)s', options);
+    const path = this.format('/', [
+      '/v2/floating_ips',
+      options.ip
+    ]);
+
+    const token = this.format('Bearer %(token)s', options);
 
     const request = {
       extra: {

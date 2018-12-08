@@ -6,8 +6,13 @@ export default class DigitaloceanFloatingipsPoster extends Worker {
 
     this.check(options, ['token', 'ip']);
 
-    const token = this.sprintf('Bearer %(token)s', options);
-    const path = this.sprintf('/v2/floating_ips/%(ip)s/actions', options);
+    const path = this.format('/', [
+      '/v2/floating_ips',
+      options.ip,
+      options.ip ? 'actions' : null
+    ]);
+
+    const token = this.format('Bearer %(token)s', options);
 
     const request = {
       extra: {
