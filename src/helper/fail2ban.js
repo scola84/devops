@@ -11,16 +11,16 @@ export default function fail2ban() {
   const update = new Commander({
     description: 'Update fail2ban',
     command: (box, data) => {
-      const service = data.services.fail2ban || {};
+      const service = data.role.fail2ban || {};
 
       let settings = [
         ['action = %(action_.*)s', 'action = %(action_mw)s'],
         ['bantime.*', 'bantime = 10m'],
-        ['port.*', `port = ${data.services.ssh.port}`, 'sshd']
+        ['port.*', `port = ${data.role.ssh.port}`, 'sshd']
       ];
 
-      const from = service.from || data.services.mta.from;
-      const to = service.to || data.services.mta.to;
+      const from = service.from || data.role.mta.from;
+      const to = service.to || data.role.mta.to;
 
       if (from && to) {
         settings.push(['sender.*', `sender = ${from}`]);

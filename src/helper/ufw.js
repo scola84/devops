@@ -14,18 +14,8 @@ export default function ufw1() {
         'ufw default deny incoming',
       ];
 
-      data.services.ufw.services.forEach((service) => {
-        service = data.services[service];
-
-        commands.push(ufw(
-          service.port,
-          service.act,
-          service.dir,
-          service.on,
-          service.proto,
-          service.from,
-          service.to
-        ));
+      data.role.ufw.forEach((rule) => {
+        commands.push(ufw(rule));
       });
 
       return commands;

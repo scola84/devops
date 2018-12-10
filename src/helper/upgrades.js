@@ -10,7 +10,7 @@ export default function unattendedUpgrades() {
     description: 'Update unattended-upgrades',
     command: (box, data) => {
       return [
-        copy(data.services.upgrades['10periodic'],
+        copy(data.role.upgrades['10periodic'],
           '/etc/apt/apt.conf.d/10periodic'),
         chmod('/etc/apt/apt.conf.d/10periodic', '0644'),
         chown('/etc/apt/apt.conf.d/10periodic', 'root', 'root')

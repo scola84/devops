@@ -9,12 +9,12 @@ export default function logwatch() {
   const update = new Commander({
     description: 'Update logwatch',
     command: (box, data) => {
-      const service = data.services.logwatch = {};
+      const service = data.role.logwatch = {};
 
       let settings = [];
 
-      const from = service.from || data.services.mta.from;
-      const to = service.to || data.services.mta.to;
+      const from = service.from || data.role.mta.from;
+      const to = service.to || data.role.mta.to;
 
       if (from && to) {
         settings.push(['Output.*', 'Output = mail']);

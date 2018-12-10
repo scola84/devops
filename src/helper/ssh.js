@@ -4,10 +4,10 @@ export default function ssh() {
   const prepare = new Commander({
     description: 'Prepare SSH dir',
     decide: (box, data) => {
-      return data.services.user.install.key !== '';
+      return data.role.user.install.key !== '';
     },
     command: (box, data) => {
-      const service = data.services.user.install;
+      const service = data.role.user.install;
       const dir = `/home/${service.username}/.ssh`;
 
       return [
@@ -21,10 +21,10 @@ export default function ssh() {
   const install = new Commander({
     description: 'Install SSH key',
     decide: (box, data) => {
-      return data.services.user.install.key !== '';
+      return data.role.user.install.key !== '';
     },
     command: (box, data) => {
-      const service = data.services.user.install;
+      const service = data.role.user.install;
       const file = `/home/${service.username}/.ssh/authorized_keys`;
 
       return [
@@ -38,7 +38,7 @@ export default function ssh() {
   const harden = new Commander({
     description: 'Harden SSH',
     command: (box, data) => {
-      const service = data.services.ssh;
+      const service = data.role.ssh;
 
       let settings = [
         ['#?Port.*', `Port ${service.port}`],
