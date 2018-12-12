@@ -7,14 +7,14 @@ export default function ufw1() {
   });
 
   const update = new Commander({
-    description: 'Allow UFW SSH',
+    description: 'Update UFW rules',
     quiet: true,
     command: (box, data) => {
       const commands = [
         'ufw default deny incoming',
       ];
 
-      data.role.ufw.forEach((rule) => {
+      data.role.ufw.rule.forEach((rule) => {
         commands.push(ufw(rule));
       });
 

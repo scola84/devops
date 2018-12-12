@@ -16,7 +16,7 @@ export default function fail2ban() {
       let settings = [
         ['action = %(action_.*)s', 'action = %(action_mw)s'],
         ['bantime.*', 'bantime = 10m'],
-        ['port.*', `port = ${data.role.ssh.port}`, 'sshd']
+        ['port.*', `port = ${data.ssh.port}`, 'sshd']
       ];
 
       const from = service.from || data.role.mta.from;

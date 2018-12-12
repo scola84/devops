@@ -8,7 +8,11 @@ import {
 
 import {
   fail2ban,
+  git,
   logwatch,
+  mkdir,
+  node,
+  npm,
   ntp,
   os,
   sendmail,
@@ -30,7 +34,11 @@ export {
 
 export {
   fail2ban,
+  git,
   logwatch,
+  mkdir,
+  node,
+  npm,
   ntp,
   os,
   sendmail,

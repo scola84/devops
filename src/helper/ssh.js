@@ -25,23 +25,34 @@ export default function ssh() {
     },
     command: (box, data) => {
       const service = data.role.user.install;
-      const file = `/home/${service.username}/.ssh/authorized_keys`;
+      const commands = [];
 
-      return [
-        copy(service.key, file),
-        chown(file, service.username, service.username),
-        chmod(file, '0600')
-      ];
+      const id = `/home/${service.username}/.ssh/id_rsa`;
+      const keys = `/home/${service.username}/.ssh/authorized_keys`;
+
+      if (service.private !== false) {
+        commands.push(copy(service.key, id));
+        commands.push(chown(id, service.username, service.username));
+        commands.push(chmod(id, '0600'));
+      }
+
+      if (service.public !== false) {
+        commands.push(copy(service.key + '.pub', keys));
+        commands.push(chown(keys, service.username, service.username));
+        commands.push(chmod(keys, '0600'));
+      }
+
+      return commands;
     }
   });
 
   const harden = new Commander({
     description: 'Harden SSH',
     command: (box, data) => {
-      const service = data.role.ssh;
+      const service = data.role.ssh || {};
 
       let settings = [
-        ['#?Port.*', `Port ${service.port}`],
+        ['#?Port.*', `Port ${data.ssh.port}`],
         ['#?PermitRootLogin.*', 'PermitRootLogin no'],
         ['#?PasswordAuthentication.*', 'PasswordAuthentication no'],
         ['#?IgnoreRhosts.*', 'IgnoreRhosts yes'],

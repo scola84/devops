@@ -1,4 +1,4 @@
-import { Commander } from '@scola/ssh';
+import { Commander, sed } from '@scola/ssh';
 
 export default function user() {
   const install = new Commander({
@@ -37,6 +37,28 @@ export default function user() {
     }
   });
 
+  const updateHistory = new Commander({
+    description: 'Update history',
+    sudo: false,
+    decide: (box, data) => {
+      return data.role.user.install.username !== '';
+    },
+    command: (box, data) => {
+      const file = `/home/${data.role.user.install.username}/.bashrc`;
+
+      const disable = sed(file, [
+        ['set +o history']
+      ]);
+
+      return [
+        disable,
+        '. ' + file,
+        'history -c',
+        'history -w'
+      ];
+    }
+  });
+
   const remove = new Commander({
     description: 'Remove user',
     decide: (box, data) => {
@@ -50,6 +72,7 @@ export default function user() {
   install
     .connect(updateSudo)
     .connect(updatePassword)
+    .connect(updateHistory)
     .connect(remove);
 
   return [install, remove];
