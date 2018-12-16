@@ -3,33 +3,22 @@ import { parse } from 'bytes';
 
 export default class DigitaloceanDropletsGetter extends Worker {
   static merge(box, data, responseData) {
-    const mode = responseData.droplets ? 'multi' : 'single';
-
-    const remotes = mode === 'multi' ?
-      responseData.droplets : [responseData.droplet];
-
-    const locals = mode === 'multi' ?
-      data : [data];
-
-    mergeLocals(locals, remotes);
-    mergeRemotes(locals, remotes);
-
-    return mode === 'multi' ? locals : locals.shift();
+    return merge(box, data, responseData);
   }
 
   act(box, data) {
-    const options = this.filter(box, data);
+    const { request } = this.filter(box, data);
 
-    this.check(options, ['token']);
+    this.check(request, ['token']);
 
-    const path = this.format('/', [
+    const path = this.stringify('/', [
       '/v2/droplets',
-      options.droplet_id
+      request.droplet_id
     ]);
 
-    const token = this.format('Bearer %(token)s', options);
+    const token = this.stringify('Bearer %(token)s', request);
 
-    const request = {
+    this.pass({
       extra: {
         box,
         data
@@ -42,12 +31,25 @@ export default class DigitaloceanDropletsGetter extends Worker {
       url: {
         hostname: 'api.digitalocean.com',
         path,
-        query: options.query
+        query: request.query
       }
-    };
-
-    this.pass(request);
+    });
   }
+}
+
+function merge(box, data, responseData) {
+  const mode = responseData.droplets ? 'multi' : 'single';
+
+  const remotes = mode === 'multi' ?
+    responseData.droplets : [responseData.droplet];
+
+  const locals = mode === 'multi' ?
+    data : [data];
+
+  mergeLocals(locals, remotes);
+  mergeRemotes(locals, remotes);
+
+  return mode === 'multi' ? locals : locals.shift();
 }
 
 function mergeLocals(locals, remotes) {

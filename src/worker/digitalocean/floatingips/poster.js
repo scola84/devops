@@ -2,19 +2,22 @@ import { Worker } from '@scola/worker';
 
 export default class DigitaloceanFloatingipsPoster extends Worker {
   act(box, data) {
-    const options = this.filter(box, data);
+    const {
+      request,
+      requestData
+    } = this.filter(box, data);
 
-    this.check(options, ['token', 'ip']);
+    this.check(request, ['token', 'ip']);
 
-    const path = this.format('/', [
+    const path = this.stringify('/', [
       '/v2/floating_ips',
-      options.ip,
-      options.ip ? 'actions' : null
+      request.ip,
+      request.ip ? 'actions' : null
     ]);
 
-    const token = this.format('Bearer %(token)s', options);
+    const token = this.stringify('Bearer %(token)s', request);
 
-    const request = {
+    this.pass({
       extra: {
         box,
         data
@@ -28,8 +31,6 @@ export default class DigitaloceanFloatingipsPoster extends Worker {
         hostname: 'api.digitalocean.com',
         path
       }
-    };
-
-    this.pass(request, options.data);
+    }, requestData);
   }
 }

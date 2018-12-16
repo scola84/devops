@@ -2,19 +2,22 @@ import { Worker } from '@scola/worker';
 
 export default class DigitaloceanDropletsPoster extends Worker {
   act(box, data) {
-    const options = this.filter(box, data);
+    const {
+      request,
+      requestData
+    } = this.filter(box, data);
 
-    this.check(options, ['token']);
+    this.check(request, ['token']);
 
-    const path = this.format('/', [
+    const path = this.stringify('/', [
       '/v2/droplets',
-      options.droplet_id,
-      options.droplet_id ? 'actions' : null
+      request.droplet_id,
+      request.droplet_id ? 'actions' : null
     ]);
 
-    const token = this.format('Bearer %(token)s', options);
+    const token = this.stringify('Bearer %(token)s', request);
 
-    const request = {
+    this.pass({
       extra: {
         box,
         data
@@ -28,8 +31,6 @@ export default class DigitaloceanDropletsPoster extends Worker {
         hostname: 'api.digitalocean.com',
         path
       }
-    };
-
-    this.pass(request, options.data);
+    }, requestData);
   }
 }

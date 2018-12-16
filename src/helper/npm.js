@@ -24,7 +24,6 @@ export default function npm() {
     },
     answers: (box, data, line, command) => {
       if (command !== 'npm login') {
-        console.log('going away');
         return '';
       }
 

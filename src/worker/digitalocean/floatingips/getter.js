@@ -2,28 +2,22 @@ import { Worker } from '@scola/worker';
 
 export default class DigitaloceanFloatingipsGetter extends Worker {
   static merge(box, data, responseData) {
-    const ip = responseData.floating_ip;
-
-    if (ip.droplet === null || ip.droplet.id !== data.server.id) {
-      data.server.actions.assign_floating_ip = true;
-    }
-
-    return data;
+    return merge(box, data, responseData);
   }
 
   act(box, data) {
-    const options = this.filter(box, data);
+    const { request } = this.filter(box, data);
 
-    this.check(options, ['token']);
+    this.check(request, ['token']);
 
-    const path = this.format('/', [
+    const path = this.stringify('/', [
       '/v2/floating_ips',
-      options.ip
+      request.ip
     ]);
 
-    const token = this.format('Bearer %(token)s', options);
+    const token = this.stringify('Bearer %(token)s', request);
 
-    const request = {
+    this.pass({
       extra: {
         box,
         data
@@ -37,8 +31,16 @@ export default class DigitaloceanFloatingipsGetter extends Worker {
         hostname: 'api.digitalocean.com',
         path
       }
-    };
-
-    this.pass(request);
+    });
   }
+}
+
+function merge(box, data, responseData) {
+  const ip = responseData.floating_ip;
+
+  if (ip.droplet === null || ip.droplet.id !== data.server.id) {
+    data.server.actions.assign_floating_ip = true;
+  }
+
+  return data;
 }
