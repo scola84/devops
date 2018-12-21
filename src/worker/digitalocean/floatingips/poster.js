@@ -7,8 +7,6 @@ export default class DigitaloceanFloatingipsPoster extends Worker {
       requestData
     } = this.filter(box, data);
 
-    this.check(request, ['token', 'ip']);
-
     const path = this.stringify('/', [
       '/v2/floating_ips',
       request.ip,

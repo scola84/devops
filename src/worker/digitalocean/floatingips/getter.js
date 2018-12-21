@@ -8,8 +8,6 @@ export default class DigitaloceanFloatingipsGetter extends Worker {
   act(box, data) {
     const { request } = this.filter(box, data);
 
-    this.check(request, ['token']);
-
     const path = this.stringify('/', [
       '/v2/floating_ips',
       request.ip

@@ -4,8 +4,6 @@ export default class DigitaloceanDropletDeleter extends Worker {
   act(box, data) {
     const { request } = this.filter(box, data);
 
-    this.check(request, ['token', 'droplet_id']);
-
     const path = this.stringify('/', [
       '/v2/droplets',
       request.droplet_id

@@ -9,8 +9,6 @@ export default class DigitaloceanDropletsGetter extends Worker {
   act(box, data) {
     const { request } = this.filter(box, data);
 
-    this.check(request, ['token']);
-
     const path = this.stringify('/', [
       '/v2/droplets',
       request.droplet_id
