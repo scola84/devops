@@ -7,12 +7,31 @@ export default function mkdir() {
       const service = data.role.mkdir || {};
       const commands = [];
 
-      const user = data.ssh.user.username;
+      let own = null;
+      let mod = null;
 
       service.dir.forEach((dir) => {
         commands.push(`mkdir -p ${dir.path}`);
-        commands.push(chown(dir.path, user, user));
-        commands.push(chmod(dir.path, dir.chmod));
+
+        own = dir.chown;
+
+        if (typeof own === 'function') {
+          own = own(box, data);
+        }
+
+        mod = dir.chmod;
+
+        if (typeof mod === 'function') {
+          mod = mod(box, data);
+        }
+
+        if (own) {
+          commands.push(chown(dir.path, own));
+        }
+
+        if (mod) {
+          commands.push(chmod(dir.path, mod));
+        }
       });
 
       return commands;

@@ -7,14 +7,17 @@ import {
 } from './src/worker';
 
 import {
+  copy,
   fail2ban,
   git,
   logwatch,
   mkdir,
+  nginx,
   node,
   npm,
   ntp,
   os,
+  sed,
   sendmail,
   ssh,
   swap,
@@ -33,14 +36,17 @@ export {
 };
 
 export {
+  copy,
   fail2ban,
   git,
   logwatch,
   mkdir,
+  nginx,
   node,
   npm,
   ntp,
   os,
+  sed,
   sendmail,
   ssh,
   swap,
