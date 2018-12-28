@@ -14,7 +14,7 @@ export default function copy1() {
         const options = typeof file.options === 'function' ?
           file.options(box, data) : file.options;
 
-        commands.push(copy(file.local, file.remote, options));
+        commands.push(copy(file.source, file.target, options));
 
         own = file.chown;
 
@@ -29,11 +29,11 @@ export default function copy1() {
         }
 
         if (own) {
-          commands.push(chown(file.remote, own));
+          commands.push(chown(file.target, own));
         }
 
         if (mod) {
-          commands.push(chmod(file.remote, mod));
+          commands.push(chmod(file.target, mod));
         }
       });
 
