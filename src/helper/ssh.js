@@ -12,7 +12,7 @@ export default function ssh() {
 
       return [
         `mkdir ${dir}`,
-        chown(dir, service.username, service.username),
+        chown(dir, service.username + ':' + service.username),
         chmod(dir, '0700')
       ];
     }
@@ -32,13 +32,13 @@ export default function ssh() {
 
       if (service.private !== false) {
         commands.push(copy(service.key, id));
-        commands.push(chown(id, service.username, service.username));
+        commands.push(chown(id, service.username + ':' + service.username));
         commands.push(chmod(id, '0600'));
       }
 
       if (service.public !== false) {
         commands.push(copy(service.key + '.pub', keys));
-        commands.push(chown(keys, service.username, service.username));
+        commands.push(chown(keys, service.username + ':' + service.username));
         commands.push(chmod(keys, '0600'));
       }
 
@@ -48,6 +48,7 @@ export default function ssh() {
 
   const harden = new Commander({
     description: 'Harden SSH',
+    quiet: true,
     command: (box, data) => {
       const service = data.role.ssh || {};
 

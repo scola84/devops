@@ -10,6 +10,7 @@ export default function fail2ban() {
 
   const update = new Commander({
     description: 'Update fail2ban',
+    quiet: true,
     command: (box, data) => {
       const service = data.role.fail2ban || {};
 

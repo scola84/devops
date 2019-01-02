@@ -9,8 +9,10 @@ export default function user() {
     command: (box, data) => {
       return `adduser --gecos "" ${data.role.user.install.username}`;
     },
-    answers: (box, data) => {
-      return data.role.user.install.password || 'tty';
+    answers: (box, data, line) => {
+      return line.match(/password:$/) ?
+        data.role.user.install.password || 'tty' :
+        null;
     }
   });
 
@@ -32,8 +34,10 @@ export default function user() {
     command: (box, data) => {
       return `passwd ${data.role.user.install.username}`;
     },
-    answers: (box, data) => {
-      return data.role.user.install.password || 'tty';
+    answers: (box, data, line) => {
+      return line.match(/password:$/) ?
+        data.role.user.install.password || 'tty' :
+        null;
     }
   });
 

@@ -24,8 +24,7 @@ export default function ufw1() {
 
   const enable = new Commander({
     description: 'Enable UFW',
-    command: 'ufw enable',
-    answers: () => 'y'
+    command: 'ufw --force enable'
   });
 
   install

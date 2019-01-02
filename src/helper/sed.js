@@ -3,6 +3,7 @@ import { Commander, sed } from '@scola/ssh';
 export default function sed1() {
   return new Commander({
     description: 'Edit files',
+    quiet: true,
     command: (box, data) => {
       const service = data.role.sed || {};
       const commands = [];

@@ -13,7 +13,12 @@ export default function npm() {
           commands.push(`cd ${path}`);
         }
 
-        commands.push(`npm ${name} ${script}`);
+        let command = `npm ${name} ${script}`;
+
+        command = script.match(/--global/) ?
+          'sudo ' + command : command;
+
+        commands.push(command);
 
         if (path) {
           commands.push('cd ~');
@@ -24,7 +29,7 @@ export default function npm() {
     },
     answers: (box, data, line, command) => {
       if (command !== 'npm login') {
-        return '';
+        return null;
       }
 
       const service = data.role.npm || {};
@@ -41,7 +46,7 @@ export default function npm() {
         return service.login.email;
       }
 
-      return '';
+      return null;
     }
   });
 }

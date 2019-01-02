@@ -18,6 +18,7 @@ export default function swap() {
 
   const update = new Commander({
     description: 'Update swap file',
+    quiet: true,
     command: [
       chmod('/swapfile', '0600'),
       sed('/etc/fstab', '\\/swapfile none swap ws 0 0')

@@ -8,6 +8,7 @@ export default function logwatch() {
 
   const update = new Commander({
     description: 'Update logwatch',
+    quiet: true,
     command: (box, data) => {
       const service = data.role.logwatch = {};
 
