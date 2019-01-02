@@ -3,6 +3,7 @@ import fail2ban from './fail2ban';
 import git from './git';
 import logwatch from './logwatch';
 import mkdir from './mkdir';
+import mysql from './mysql';
 import nginx from './nginx';
 import node from './node';
 import npm from './npm';
@@ -24,6 +25,7 @@ export {
   git,
   logwatch,
   mkdir,
+  mysql,
   nginx,
   node,
   npm,
