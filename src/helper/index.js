@@ -8,6 +8,7 @@ import node from './node';
 import npm from './npm';
 import ntp from './ntp';
 import os from './os';
+import pm2 from './pm2';
 import sed from './sed';
 import sendmail from './sendmail';
 import ssh from './ssh';
@@ -28,6 +29,7 @@ export {
   npm,
   ntp,
   os,
+  pm2,
   sed,
   sendmail,
   ssh,
