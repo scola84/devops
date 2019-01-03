@@ -1,4 +1,4 @@
-import { Commander, pkg } from '@scola/ssh';
+import { Commander, ctl, pkg } from '@scola/ssh';
 
 export default function mysql() {
   const install = new Commander({
@@ -33,9 +33,15 @@ export default function mysql() {
     }
   });
 
+  const restart = new Commander({
+    description: 'Restart mysql',
+    command: ctl('restart', 'mysql')
+  });
+
   install
     .connect(change)
-    .connect(secure);
+    .connect(secure)
+    .connect(restart);
 
-  return [install, secure];
+  return [install, restart];
 }
