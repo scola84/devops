@@ -33,6 +33,25 @@ export default function mysql() {
     }
   });
 
+  const create = new Commander({
+    description: 'Create mysql databases',
+    command: (box, data) => {
+      const service = data.role.mysql || {};
+      const commands = [];
+
+      service.database.map(({ name }) => {
+        commands.push(
+          `mysql -u root -p -e 'CREATE DATABASE IF NOT EXISTS ${name};'`
+        );
+      });
+
+      return commands;
+    },
+    answers: (box) => {
+      return box.vars.MYSQL_ROOT_PASSWORD;
+    }
+  });
+
   const restart = new Commander({
     description: 'Restart mysql',
     command: ctl('restart', 'mysql')
@@ -41,6 +60,7 @@ export default function mysql() {
   install
     .connect(change)
     .connect(secure)
+    .connect(create)
     .connect(restart);
 
   return [install, restart];
