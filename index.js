@@ -27,6 +27,10 @@ import {
   ufw,
   upgrades,
   user
+} from './src/factory';
+
+import {
+  migrate
 } from './src/helper';
 
 export {
@@ -58,4 +62,8 @@ export {
   ufw,
   upgrades,
   user
+};
+
+export {
+  migrate
 };

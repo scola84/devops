@@ -2,7 +2,7 @@ import { Commander, chmod, chown } from '@scola/ssh';
 
 export default function mkdir() {
   return new Commander({
-    description: 'Make directories',
+    description: 'Create directories',
     command: (box, data) => {
       const service = data.role.mkdir || {};
       const commands = [];

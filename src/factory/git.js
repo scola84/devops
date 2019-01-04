@@ -45,8 +45,8 @@ export default function git() {
       service.repository.forEach((repository) => {
         if (repository.checkout) {
           commands.push(`cd ${repository.path}`);
+          commands.push('git fetch');
           commands.push(`git checkout ${repository.checkout}`);
-          commands.push('git pull');
           commands.push('cd ~');
         }
       });

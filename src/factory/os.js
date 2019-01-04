@@ -6,7 +6,8 @@ export default function os() {
     command: [
       pkg('update'),
       pkg('upgrade'),
-      pkg('autoremove')
+      pkg('autoremove'),
+      pkg('install', 'build-essential')
     ]
   });
 

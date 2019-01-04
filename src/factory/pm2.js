@@ -1,18 +1,18 @@
 import { Commander } from '@scola/ssh';
 
 export default function pm2() {
-  const install = new Commander({
+  const installer = new Commander({
     description: 'Install pm2',
     command: 'npm install pm2 --global'
   });
 
-  const startup = new Commander({
+  const startupper = new Commander({
     description: 'Startup pm2',
     sudo: false,
-    command: 'pm2 startup | bash'
+    command: 'pm2 startup | tail -n 1 | bash'
   });
 
-  const update = new Commander({
+  const starter = new Commander({
     description: 'Start pm2 apps',
     sudo: false,
     command: (box, data) => {
@@ -29,16 +29,16 @@ export default function pm2() {
     }
   });
 
-  const save = new Commander({
+  const saver = new Commander({
     description: 'Save pm2',
     sudo: false,
     command: 'pm2 save'
   });
 
-  install
-    .connect(startup)
-    .connect(update)
-    .connect(save);
+  installer
+    .connect(startupper)
+    .connect(starter)
+    .connect(saver);
 
-  return [install, save];
+  return [installer, saver];
 }
