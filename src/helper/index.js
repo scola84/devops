@@ -1,5 +1,5 @@
-import migrate from './migrate';
+import resolveMigration from './resolve-migration';
 
 export {
-  migrate
+  resolveMigration
 };

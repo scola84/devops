@@ -1,38 +1,50 @@
 import { Commander, pkg, sed } from '@scola/ssh';
 
-export default function logwatch() {
-  const install = new Commander({
+export default function createLogwatch(options = {
+  install: false,
+  update: null
+}) {
+  const installer = new Commander({
     description: 'Install logwatch',
-    command: pkg('install', 'logwatch')
-  });
-
-  const update = new Commander({
-    description: 'Update logwatch',
-    quiet: true,
-    command: (box, data) => {
-      const service = data.role.logwatch = {};
-
-      let settings = [];
-
-      const from = service.from || data.role.mta.from;
-      const to = service.to || data.role.mta.to;
-
-      if (from && to) {
-        settings.push(['Output.*', 'Output = mail']);
-        settings.push(['MailFrom.*', `MailFrom = ${from}`]);
-        settings.push(['MailTo.*', `MailTo = ${to}`]);
-      }
-
-      if (service.settings) {
-        settings = settings.concat(service.settings);
-      }
-
-      return sed('/usr/share/logwatch/default.conf/logwatch.conf', settings);
+    decide: () => {
+      return options.install === true;
+    },
+    command: () => {
+      return pkg('install', 'logwatch');
     }
   });
 
-  install
-    .connect(update);
+  const updater = new Commander({
+    description: 'Update logwatch',
+    quiet: true,
+    decide: () => {
+      return options.update !== null;
+    },
+    command: () => {
+      const {
+        from,
+        to,
+        settings
+      } = options.update;
 
-  return [install, update];
+      let pattern = [];
+
+      if (from && to) {
+        pattern.push(['Output.*', 'Output = mail']);
+        pattern.push(['MailFrom.*', `MailFrom = ${from}`]);
+        pattern.push(['MailTo.*', `MailTo = ${to}`]);
+      }
+
+      if (settings) {
+        pattern = pattern.concat(settings);
+      }
+
+      return sed('/usr/share/logwatch/default.conf/logwatch.conf', pattern);
+    }
+  });
+
+  installer
+    .connect(updater);
+
+  return [installer, updater];
 }

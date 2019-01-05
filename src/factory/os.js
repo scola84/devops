@@ -1,34 +1,54 @@
 import { Commander, pkg } from '@scola/ssh';
 
-export default function os() {
-  const upgradeApt = new Commander({
-    description: 'Upgrade OS',
-    command: [
-      pkg('update'),
-      pkg('upgrade'),
-      pkg('autoremove'),
-      pkg('install', 'build-essential')
-    ]
-  });
-
-  const setHostname = new Commander({
-    description: 'Set hostname',
-    command: (box, data) => {
-      return `hostnamectl set-hostname ${data.hostname}`;
+export default function createOs(options = {
+  install: false,
+  update: false,
+  upgrade: false
+}) {
+  const upgrader = new Commander({
+    description: 'Upgrade apt',
+    decide: () => {
+      return options.upgrade === true;
+    },
+    command: () => {
+      return [
+        pkg('update'),
+        pkg('upgrade'),
+        pkg('autoremove')
+      ];
     }
   });
 
-  const setTimezone = new Commander({
-    description: 'Set timezone',
-    command: [
-      'timedatectl set-timezone UTC',
-      'timedatectl set-ntp no'
-    ]
+  const installer = new Commander({
+    description: 'Install apt packages',
+    decide: () => {
+      return options.install === true;
+    },
+    command: () => {
+      return [
+        pkg('install', 'unattended-upgrades'),
+        pkg('install', 'build-essential')
+      ];
+    }
   });
 
-  upgradeApt
-    .connect(setHostname)
-    .connect(setTimezone);
+  const updater = new Commander({
+    description: 'Update ctl',
+    decide: () => {
+      return options.update === true;
+    },
+    command: (box, data) => {
+      return [
+        `hostnamectl set-hostname ${data.hostname}`,
+        'timedatectl set-timezone UTC',
+        'timedatectl set-ntp no'
+      ];
+    }
+  });
 
-  return [upgradeApt, setTimezone];
+  upgrader
+    .connect(installer)
+    .connect(updater);
+
+  return [upgrader, updater];
 }

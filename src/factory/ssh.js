@@ -1,44 +1,42 @@
 import { Commander, chmod, chown, copy, ctl, sed } from '@scola/ssh';
 
-export default function ssh() {
-  const prepare = new Commander({
-    description: 'Prepare SSH dir',
-    decide: (box, data) => {
-      return data.role.user.install.key !== '';
+export default function createSsh(options = {
+  restart: false,
+  harden: null,
+  add: null
+}) {
+  const adder = new Commander({
+    description: 'Add SSH key',
+    decide: () => {
+      return options.add !== null;
     },
-    command: (box, data) => {
-      const service = data.role.user.install;
-      const dir = `/home/${service.username}/.ssh`;
+    command: () => {
+      const {
+        key,
+        prv,
+        pub,
+        username
+      } = options.add;
 
-      return [
+      const dir = `/home/${username}/.ssh`;
+
+      const commands = [
         `mkdir ${dir}`,
-        chown(dir, service.username + ':' + service.username),
+        chown(dir, username + ':' + username),
         chmod(dir, '0700')
       ];
-    }
-  });
 
-  const install = new Commander({
-    description: 'Install SSH key',
-    decide: (box, data) => {
-      return data.role.user.install.key !== '';
-    },
-    command: (box, data) => {
-      const service = data.role.user.install;
-      const commands = [];
-
-      const id = `/home/${service.username}/.ssh/id_rsa`;
-      const keys = `/home/${service.username}/.ssh/authorized_keys`;
-
-      if (service.private !== false) {
-        commands.push(copy(service.key, id));
-        commands.push(chown(id, service.username + ':' + service.username));
+      if (prv !== false) {
+        const id = dir + '/id_rsa';
+        commands.push(copy(key, id));
+        commands.push(chown(id, username + ':' + username));
         commands.push(chmod(id, '0600'));
       }
 
-      if (service.public !== false) {
-        commands.push(copy(service.key + '.pub', keys));
-        commands.push(chown(keys, service.username + ':' + service.username));
+      if (pub !== false) {
+        const keys = dir + 'authorized_keys';
+        commands.push(copy(key + '.pub', keys));
+        commands.push(chown(keys, username + ':' + username));
         commands.push(chmod(keys, '0600'));
       }
 
@@ -46,13 +44,18 @@ export default function ssh() {
     }
   });
 
-  const harden = new Commander({
+  const hardener = new Commander({
     description: 'Harden SSH',
     quiet: true,
+    decide: () => {
+      return options.harden !== null;
+    },
     command: (box, data) => {
-      const service = data.role.ssh || {};
+      const {
+        settings
+      } = options.harden;
 
-      let settings = [
+      let pattern = [
         ['#?Port.*', `Port ${data.ssh.port}`],
         ['#?PermitRootLogin.*', 'PermitRootLogin no'],
         ['#?PasswordAuthentication.*', 'PasswordAuthentication no'],
@@ -67,23 +70,27 @@ export default function ssh() {
         ['#?ClientAliveCountMax.*', 'ClientAliveCountMax 0']
       ];
 
-      if (service.settings) {
-        settings = settings.concat(service.settings);
+      if (settings) {
+        pattern = pattern.concat(settings);
       }
 
-      return sed('/etc/ssh/sshd_config', settings);
+      return sed('/etc/ssh/sshd_config', pattern);
     }
   });
 
-  const restart = new Commander({
+  const restarter = new Commander({
     description: 'Restart SSH',
-    command: ctl('restart', 'sshd')
+    decide: () => {
+      return options.restart === true;
+    },
+    command: () => {
+      return ctl('restart', 'sshd');
+    }
   });
 
-  prepare
-    .connect(install)
-    .connect(harden)
-    .connect(restart);
+  adder
+    .connect(hardener)
+    .connect(restarter);
 
-  return [prepare, restart];
+  return [adder, restarter];
 }

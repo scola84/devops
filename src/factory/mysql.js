@@ -1,75 +1,111 @@
 import { Commander, ctl, pkg } from '@scola/ssh';
-import { migrate } from '../helper';
+import { resolveMigration } from '../helper';
 
-export default function mysql() {
+export default function createMysql(options = {
+  install: false,
+  restart: false,
+  restrict: false,
+  secure: false,
+  create: null,
+  migrate: null,
+  root: {},
+  user: {}
+}) {
   const installer = new Commander({
     description: 'Install mysql',
+    decide: () => {
+      return options.install === true;
+    },
     command: () => {
       return pkg('install', 'mysql-server');
     }
   });
 
-  const changer = new Commander({
-    description: 'Change mysql root password',
+  const restrictor = new Commander({
+    description: 'Restrict mysql root access',
     quiet: true,
-    command: (box, data) => {
-      const service = data.role.mysql || {};
-      return `mysql -u ${service.root.username} -NBe 'ALTER USER "${service.root.username}"@"localhost" IDENTIFIED WITH mysql_native_password BY "${service.root.password}";'`;
+    decide: () => {
+      return options.restrict === true;
+    },
+    command: () => {
+      const { root } = options;
+      const query = `ALTER USER "${root.username}"@"localhost" IDENTIFIED WITH mysql_native_password BY "${root.password}";`;
+      return `mysql -u ${root.username} -N -B -e '${query}'`;
     }
   });
 
   const securer = new Commander({
     description: 'Secure mysql',
-    command: (box, data) => {
-      const service = data.role.mysql || {};
+    decide: () => {
+      return options.secure === true;
+    },
+    command: () => {
+      const {
+        root,
+        user
+      } = options;
 
       const query = [
-        `DELETE FROM mysql.user WHERE User="${service.root.username}" AND Host NOT IN ("localhost", "127.0.0.1", "::1")`,
+        `DELETE FROM mysql.user WHERE User="${root.username}" AND Host NOT IN ("localhost", "127.0.0.1", "::1")`,
         'DELETE FROM mysql.user WHERE User=""',
-        `CREATE USER IF NOT EXISTS "${service.user.username}"@"localhost" IDENTIFIED BY "${service.user.password}"`,
-        `ALTER USER "${service.user.username}"@"localhost" IDENTIFIED WITH mysql_native_password BY "${service.user.password}"`,
-        `GRANT ALL PRIVILEGES ON *.* TO "${service.user.username}"@"localhost" WITH GRANT OPTION`,
+        `CREATE USER IF NOT EXISTS "${user.username}"@"localhost" IDENTIFIED BY "${user.password}"`,
+        `ALTER USER "${user.username}"@"localhost" IDENTIFIED WITH mysql_native_password BY "${user.password}"`,
+        `GRANT ALL PRIVILEGES ON *.* TO "${user.username}"@"localhost" WITH GRANT OPTION`,
         'DROP DATABASE IF EXISTS test'
       ];
 
-      return `mysql -u ${service.root.username} -p -e '${query.join(';')}'`;
+      return `mysql -u ${root.username} -p -e '${query.join(';')}'`;
     },
     answers: (box, data, line) => {
       return line.match(/password:$/) ?
-        data.role.mysql.root.password :
+        options.root.password :
         null;
     }
   });
 
   const creator = new Commander({
     description: 'Create mysql databases',
+    decide: () => {
+      return options.create !== null;
+    },
     command: (box, data) => {
-      const service = data.role.mysql || {};
+      let create = options.create;
 
-      const query = service.database.map(({ name }) => {
+      if (typeof create === 'function') {
+        create = create(box, data);
+      }
+
+      const query = create.map(({ name }) => {
         return `CREATE DATABASE IF NOT EXISTS ${name}`;
       });
 
-      return `mysql -u ${service.user.username} -p -e '${query.join(';')}'`;
+      return `mysql -u ${options.user.username} -p -e '${query.join(';')}'`;
     },
     answers: (box, data, line) => {
       return line.match(/password:$/) ?
-        data.role.mysql.user.password :
+        options.user.password :
         null;
     }
   });
 
   const migrator = new Commander({
-    description: 'Execute mysql migration',
+    description: 'Migrate mysql',
+    decide: () => {
+      return options.migrate !== null;
+    },
     command: (box, data) => {
-      const service = data.role.mysql || {};
-      const commands = [];
+      let migrate = options.migrate;
 
-      const files = migrate(box, data, service.migration);
+      if (typeof migrate === 'function') {
+        migrate = migrate(box, data);
+      }
+
+      const commands = [];
+      const files = resolveMigration(migrate);
 
       files.forEach(({ file, name }) => {
         commands.push(
-          `mysql -u ${data.role.mysql.user.username} -p -e 'USE ${name}; ${file}'`
+          `mysql -u ${options.user.username} -p -e 'USE ${name}; ${file}'`
         );
       });
 
@@ -77,18 +113,23 @@ export default function mysql() {
     },
     answers: (box, data, line) => {
       return line.match(/password:$/) ?
-        data.role.mysql.user.password :
+        options.user.password :
         null;
     }
   });
 
   const restarter = new Commander({
     description: 'Restart mysql',
-    command: ctl('restart', 'mysql')
+    decide: () => {
+      return options.restart === true;
+    },
+    command: () => {
+      return ctl('restart', 'mysql');
+    }
   });
 
   installer
-    .connect(changer)
+    .connect(restrictor)
     .connect(securer)
     .connect(creator)
     .connect(migrator)

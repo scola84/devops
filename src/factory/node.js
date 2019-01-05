@@ -1,16 +1,24 @@
 import { Commander, pkg } from '@scola/ssh';
 
-export default function node() {
-  return new Commander({
+export default function createNode(options = {
+  install: null
+}) {
+  const installer = new Commander({
     description: 'Install node',
     quiet: true,
-    command: (box, data) => {
-      const service = data.role.node || {};
+    decide: () => {
+      return options.install !== null;
+    },
+    command: () => {
+      const version = options.install.version;
+      const uri = `https://deb.nodesource.com/setup_${version}.x`;
 
       return [
-        `curl -sL https://deb.nodesource.com/setup_${service.version}.x | sudo bash`,
+        `curl -sL ${uri} | sudo bash`,
         pkg('install', 'nodejs')
       ];
     }
   });
+
+  return installer;
 }

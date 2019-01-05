@@ -1,40 +1,39 @@
 import { Commander, chmod, chown } from '@scola/ssh';
 
-export default function mkdir() {
-  return new Commander({
+export default function createMkdir(options = {
+  create: null
+}) {
+  const creator = new Commander({
     description: 'Create directories',
+    decide: () => {
+      return options.create !== null;
+    },
     command: (box, data) => {
-      const service = data.role.mkdir || {};
       const commands = [];
 
-      let own = null;
-      let mod = null;
-
-      service.dir.forEach((dir) => {
-        commands.push(`mkdir -p ${dir.path}`);
-
-        own = dir.chown;
+      options.create.forEach((mod, own, path) => {
+        commands.push(`mkdir -p ${path}`);
 
         if (typeof own === 'function') {
           own = own(box, data);
         }
-
-        mod = dir.chmod;
 
         if (typeof mod === 'function') {
           mod = mod(box, data);
         }
 
         if (own) {
-          commands.push(chown(dir.path, own));
+          commands.push(chown(path, own));
         }
 
         if (mod) {
-          commands.push(chmod(dir.path, mod));
+          commands.push(chmod(path, mod));
         }
       });
 
       return commands;
     }
   });
+
+  return creator;
 }

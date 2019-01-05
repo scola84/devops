@@ -1,51 +1,65 @@
 import { Commander, ctl, pkg, sed } from '@scola/ssh';
 
-export default function fail2ban() {
-  const install = new Commander({
+export default function createFail2ban(options = {
+  install: false,
+  restart: false,
+  update: null
+}) {
+  const installer = new Commander({
     description: 'Install fail2ban',
+    decide: () => {
+      return options.install === true;
+    },
     command: [
       pkg('install', 'fail2ban')
     ]
   });
 
-  const update = new Commander({
+  const updater = new Commander({
     description: 'Update fail2ban',
     quiet: true,
+    decide: () => {
+      return options.update !== null;
+    },
     command: (box, data) => {
-      const service = data.role.fail2ban || {};
+      const {
+        from,
+        to,
+        settings
+      } = options.update;
 
-      let settings = [
+      let pattern = [
         ['action = %(action_.*)s', 'action = %(action_mw)s'],
         ['bantime.*', 'bantime = 10m'],
         ['port.*', `port = ${data.ssh.port}`, 'sshd']
       ];
 
-      const from = service.from || data.role.mta.from;
-      const to = service.to || data.role.mta.to;
-
       if (from && to) {
-        settings.push(['sender.*', `sender = ${from}`]);
-        settings.push(['destemail.*', `destemail = ${to}`]);
+        pattern.push(['sender.*', `sender = ${from}`]);
+        pattern.push(['destemail.*', `destemail = ${to}`]);
       }
 
-      if (service.settings) {
-        settings = settings.concat(service.settings);
+      if (settings) {
+        pattern = pattern.concat(settings);
       }
 
-      return sed('/etc/fail2ban/jail.conf', settings);
+      return sed('/etc/fail2ban/jail.conf', pattern);
     }
   });
 
-  const restart = new Commander({
+  const restarter = new Commander({
     description: 'Restart fail2ban',
+    decide: () => {
+      return options.restart === true;
+    },
     command: [
       ctl('restart', 'fail2ban')
     ]
   });
 
-  install
-    .connect(update)
-    .connect(restart);
+  installer
+    .connect(updater)
+    .connect(restarter);
 
-  return [install, restart];
+  return [installer, restarter];
 }

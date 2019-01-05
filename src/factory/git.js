@@ -1,27 +1,32 @@
 import { Commander, pkg } from '@scola/ssh';
 
-export default function git() {
-  const install = new Commander({
+export default function createGit(options = {
+  install: false,
+  checkout: null,
+  clone: null
+}) {
+  const installer = new Commander({
     description: 'Install git',
-    command: (box, data) => {
-      const service = data.role.git || {};
-
-      return [
-        pkg('install', 'git', service.version)
-      ];
+    decide: () => {
+      return options.install === true;
+    },
+    command: () => {
+      return pkg('install', 'git');
     }
   });
 
-  const clone = new Commander({
+  const cloner = new Commander({
     description: 'Clone git repositories',
+    decide: () => {
+      return options.clone !== null;
+    },
     sudo: false,
-    command: (box, data) => {
-      const service = data.role.git || {};
+    command: () => {
       const commands = [];
 
-      service.repository.forEach((repository) => {
-        commands.push(`mkdir -p ${repository.path}`);
-        commands.push(`git clone -q ${repository.uri} ${repository.path}`);
+      options.clone.forEach(({ path, uri }) => {
+        commands.push(`mkdir -p ${path}`);
+        commands.push(`git clone -q ${uri} ${path}`);
       });
 
       return commands;
@@ -35,29 +40,29 @@ export default function git() {
     }
   });
 
-  const update = new Commander({
-    description: 'Update git repositories',
+  const checkouter = new Commander({
+    description: 'Checkout git repositories',
     sudo: false,
-    command: (box, data) => {
-      const service = data.role.git || {};
+    decide: () => {
+      return options.checkout !== null;
+    },
+    command: () => {
       const commands = [];
 
-      service.repository.forEach((repository) => {
-        if (repository.checkout) {
-          commands.push(`cd ${repository.path}`);
-          commands.push('git fetch');
-          commands.push(`git checkout ${repository.checkout}`);
-          commands.push('cd ~');
-        }
+      options.checkout.forEach(({ path, name }) => {
+        commands.push(`cd ${path}`);
+        commands.push('git fetch');
+        commands.push(`git checkout ${name}`);
+        commands.push('cd ~');
       });
 
       return commands;
     }
   });
 
-  install
-    .connect(clone)
-    .connect(update);
+  installer
+    .connect(cloner)
+    .connect(checkouter);
 
-  return [install, update];
+  return [installer, checkouter];
 }

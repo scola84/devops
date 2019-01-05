@@ -1,21 +1,31 @@
 import { Commander, ctl, pkg } from '@scola/ssh';
 
-export default function nginx() {
-  const install = new Commander({
+export default function createNginx(options = {
+  install: false,
+  restart: false
+}) {
+  const installer = new Commander({
     description: 'Install nginx',
-    command: (box, data) => {
-      const service = data.role.nginx || {};
-      return pkg('install', 'nginx', service.version);
+    decide: () => {
+      return options.install === true;
+    },
+    command: () => {
+      return pkg('install', 'nginx');
     }
   });
 
-  const restart = new Commander({
+  const restarter = new Commander({
     description: 'Restart nginx',
-    command: ctl('restart', 'nginx')
+    decide: () => {
+      return options.restart === true;
+    },
+    command: () => {
+      return ctl('restart', 'nginx');
+    }
   });
 
-  install
-    .connect(restart);
+  installer
+    .connect(restarter);
 
-  return [install, restart];
+  return [installer, restarter];
 }

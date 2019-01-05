@@ -25,12 +25,11 @@ import {
   swap,
   sysctl,
   ufw,
-  upgrades,
   user
 } from './src/factory';
 
 import {
-  migrate
+  resolveMigration
 } from './src/helper';
 
 export {
@@ -60,10 +59,9 @@ export {
   swap,
   sysctl,
   ufw,
-  upgrades,
   user
 };
 
 export {
-  migrate
+  resolveMigration
 };

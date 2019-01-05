@@ -1,20 +1,32 @@
 import { Commander, pkg, ufw } from '@scola/ssh';
 
-export default function ufw1() {
-  const install = new Commander({
+export default function createUfw(options = {
+  enable: false,
+  install: false,
+  update: null
+}) {
+  const installer = new Commander({
     description: 'Install UFW',
-    command: pkg('install', 'ufw')
+    decide: () => {
+      return options.install === true;
+    },
+    command: () => {
+      return pkg('install', 'ufw');
+    }
   });
 
-  const update = new Commander({
+  const updater = new Commander({
     description: 'Update UFW rules',
     quiet: true,
-    command: (box, data) => {
+    decide: () => {
+      return options.update !== null;
+    },
+    command: () => {
       const commands = [
         'ufw default deny incoming',
       ];
 
-      data.role.ufw.rule.forEach((rule) => {
+      options.update.forEach((rule) => {
         commands.push(ufw(rule));
       });
 
@@ -22,14 +34,19 @@ export default function ufw1() {
     }
   });
 
-  const enable = new Commander({
+  const enabler = new Commander({
     description: 'Enable UFW',
-    command: 'ufw --force enable'
+    decide: () => {
+      return options.enable === true;
+    },
+    command: () => {
+      return 'ufw --force enable';
+    }
   });
 
-  install
-    .connect(update)
-    .connect(enable);
+  installer
+    .connect(updater)
+    .connect(enabler);
 
-  return [install, enable];
+  return [installer, enabler];
 }

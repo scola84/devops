@@ -1,22 +1,31 @@
 import { Commander, ctl, pkg } from '@scola/ssh';
 
-export default function ntp() {
-  const install = new Commander({
+export default function createNtp(options = {
+  install: false,
+  restart: false
+}) {
+  const installer = new Commander({
     description: 'Install NTP',
-    command: [
-      pkg('install', 'ntp')
-    ]
+    decide: () => {
+      return options.install === true;
+    },
+    command: () => {
+      return pkg('install', 'ntp');
+    }
   });
 
-  const restart = new Commander({
+  const restarter = new Commander({
     description: 'Restart NTP',
-    command: [
-      ctl('restart', 'ntp')
-    ]
+    decide: () => {
+      return options.restart === true;
+    },
+    command: () => {
+      return ctl('restart', 'ntp');
+    }
   });
 
-  install
-    .connect(restart);
+  installer
+    .connect(restarter);
 
-  return [install, restart];
+  return [installer, restarter];
 }

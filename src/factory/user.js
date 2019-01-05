@@ -1,54 +1,57 @@
 import { Commander, sed } from '@scola/ssh';
 
-export default function user() {
-  const install = new Commander({
-    description: 'Create user',
-    decide: (box, data) => {
-      return data.role.user.install.username !== '';
+export default function createUser(options = {
+  add: null,
+  remove: null
+}) {
+  const adder = new Commander({
+    description: 'Add user',
+    decide: () => {
+      return options.add !== null;
     },
-    command: (box, data) => {
-      return `adduser --gecos "" ${data.role.user.install.username}`;
+    command: () => {
+      return `adduser --gecos "" ${options.add.username}`;
     },
     answers: (box, data, line) => {
       return line.match(/password:$/) ?
-        data.role.user.install.password || 'tty' :
+        options.add.password || 'tty' :
         null;
     }
   });
 
-  const updateSudo = new Commander({
+  const adderSudo = new Commander({
     description: 'Add user to sudo',
-    decide: (box, data) => {
-      return data.role.user.install.username !== '';
+    decide: () => {
+      return options.add !== null;
     },
-    command: (box, data) => {
-      return `usermod -aG sudo ${data.role.user.install.username}`;
+    command: () => {
+      return `usermod -aG sudo ${options.add.username}`;
     }
   });
 
-  const updatePassword = new Commander({
+  const adderPassword = new Commander({
     description: 'Update password',
-    decide: (box, data) => {
-      return data.role.user.install.username !== '';
+    decide: () => {
+      return options.add !== null;
     },
-    command: (box, data) => {
-      return `passwd ${data.role.user.install.username}`;
+    command: () => {
+      return `passwd ${options.add.username}`;
     },
     answers: (box, data, line) => {
       return line.match(/password:$/) ?
-        data.role.user.install.password || 'tty' :
+        options.add.password || 'tty' :
         null;
     }
   });
 
-  const updateHistory = new Commander({
+  const adderHistory = new Commander({
     description: 'Update history',
     sudo: false,
-    decide: (box, data) => {
-      return data.role.user.install.username !== '';
+    decide: () => {
+      return options.add !== null;
     },
-    command: (box, data) => {
-      const file = `/home/${data.role.user.install.username}/.bashrc`;
+    command: () => {
+      const file = `/home/${options.add.username}/.bashrc`;
 
       const disable = sed(file, [
         ['set +o history']
@@ -63,21 +66,21 @@ export default function user() {
     }
   });
 
-  const remove = new Commander({
+  const remover = new Commander({
     description: 'Remove user',
-    decide: (box, data) => {
-      return data.role.user.remove.username !== '';
+    decide: () => {
+      return options.remove !== null;
     },
-    command: (box, data) => {
-      return `userdel -rfRZ ${data.role.user.remove.username}`;
+    command: () => {
+      return `userdel -rfRZ ${options.remove.username}`;
     }
   });
 
-  install
-    .connect(updateSudo)
-    .connect(updatePassword)
-    .connect(updateHistory)
-    .connect(remove);
+  adder
+    .connect(adderSudo)
+    .connect(adderPassword)
+    .connect(adderHistory)
+    .connect(remover);
 
-  return [install, remove];
+  return [adder, remover];
 }

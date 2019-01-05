@@ -1,28 +1,63 @@
 import { Commander } from '@scola/ssh';
 
-export default function pm2() {
+export default function createPm2(options = {
+  install: false,
+  save: false,
+  startup: false,
+  reload: null,
+  start: null
+}) {
   const installer = new Commander({
     description: 'Install pm2',
-    command: 'npm install pm2 --global'
+    decide: () => {
+      return options.install === true;
+    },
+    command: () => {
+      return 'npm install pm2 --global';
+    }
   });
 
   const startupper = new Commander({
     description: 'Startup pm2',
     sudo: false,
-    command: 'pm2 startup | tail -n 1 | bash'
+    decide: () => {
+      return options.startup === true;
+    },
+    command: () => {
+      return 'pm2 startup | tail -n 1 | bash';
+    }
   });
 
   const starter = new Commander({
     description: 'Start pm2 apps',
     sudo: false,
-    command: (box, data) => {
+    decide: () => {
+      return options.start !== null;
+    },
+    command: () => {
       const commands = [];
 
-      data.role.pm2.app.forEach(({ args = '', name, options = [], path }) => {
-        commands.push([
-          `pm2 reload ${name}`,
-          `pm2 start ${options.join(' ')} -n ${name} ${path} -- ${args}`
-        ].join('||'));
+      options.start.forEach(({ args = '', name, opts = [], path }) => {
+        commands.push(
+          `pm2 start ${opts.join(' ')} -n ${name} ${path} -- ${args}`
+        );
+      });
+
+      return commands;
+    }
+  });
+
+  const reloader = new Commander({
+    description: 'Reload pm2 apps',
+    sudo: false,
+    decide: () => {
+      return options.reload !== null;
+    },
+    command: () => {
+      const commands = [];
+
+      options.reload.forEach(({ name }) => {
+        commands.push(`pm2 reload ${name}`);
       });
 
       return commands;
@@ -32,12 +67,18 @@ export default function pm2() {
   const saver = new Commander({
     description: 'Save pm2',
     sudo: false,
-    command: 'pm2 save'
+    decide: () => {
+      return options.save === true;
+    },
+    command: () => {
+      return 'pm2 save';
+    }
   });
 
   installer
     .connect(startupper)
     .connect(starter)
+    .connect(reloader)
     .connect(saver);
 
   return [installer, saver];

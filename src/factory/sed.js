@@ -1,36 +1,36 @@
 import { Commander, sed } from '@scola/ssh';
 
-export default function sed1() {
-  return new Commander({
+export default function createSed(options = {
+  edit: null
+}) {
+  const editor = new Commander({
     description: 'Edit files',
     quiet: true,
+    decide: () => {
+      return options.edit !== null;
+    },
     command: (box, data) => {
-      const service = data.role.sed || {};
       const commands = [];
 
-      service.file.forEach((file) => {
-        let pattern = file.pattern;
-
+      options.edit.forEach(({ file, pattern, replacer, section }) => {
         if (typeof pattern === 'function') {
           pattern = pattern(box, data);
         }
-
-        let replacer = file.replacer;
 
         if (typeof replacer === 'function') {
           replacer = replacer(box, data);
         }
 
-        let section = file.section;
-
         if (typeof section === 'function') {
           section = section(box, data);
         }
 
-        commands.push(sed(file.file, pattern, replacer, section));
+        commands.push(sed(file, pattern, replacer, section));
       });
 
       return commands;
     }
   });
+
+  return editor;
 }

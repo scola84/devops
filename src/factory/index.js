@@ -16,7 +16,6 @@ import ssh from './ssh';
 import swap from './swap';
 import sysctl from './sysctl';
 import ufw from './ufw';
-import upgrades from './upgrades';
 import user from './user';
 
 export {
@@ -38,6 +37,5 @@ export {
   swap,
   sysctl,
   ufw,
-  upgrades,
   user
 };
