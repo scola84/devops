@@ -50,8 +50,8 @@ export default function createFail2ban({
 
   const restarter = new Commander({
     description: 'Restart fail2ban',
-    decide: () => {
-      return restart === true;
+    decide: (box) => {
+      return restart === true && box.start === true;
     },
     command: [
       ctl('restart', 'fail2ban')

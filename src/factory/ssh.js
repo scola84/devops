@@ -81,8 +81,8 @@ export default function createSsh({
 
   const restarter = new Commander({
     description: 'Restart SSH',
-    decide: () => {
-      return restart === true;
+    decide: (box) => {
+      return restart === true && box.start === true;
     },
     command: () => {
       return ctl('restart', 'sshd');

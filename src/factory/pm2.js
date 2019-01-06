@@ -30,8 +30,8 @@ export default function createPm2({
   const starter = new Commander({
     description: 'Start pm2 apps',
     sudo: false,
-    decide: () => {
-      return start !== null;
+    decide: (box) => {
+      return start !== null && box.start === true;
     },
     command: () => {
       const commands = [];
