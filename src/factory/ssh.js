@@ -1,14 +1,14 @@
-import { Commander, chmod, chown, copy, ctl, sed } from '@scola/ssh';
+import { Commander, chmod, chown, cp, ctl, sed } from '@scola/ssh';
 
-export default function createSsh(options = {
-  restart: false,
-  harden: null,
-  add: null
+export default function createSsh({
+  restart = false,
+  harden = null,
+  add = null
 }) {
   const adder = new Commander({
     description: 'Add SSH key',
     decide: () => {
-      return options.add !== null;
+      return add !== null;
     },
     command: () => {
       const {
@@ -16,7 +16,7 @@ export default function createSsh(options = {
         prv,
         pub,
         username
-      } = options.add;
+      } = add;
 
       const dir = `/home/${username}/.ssh`;
 
@@ -28,14 +28,14 @@ export default function createSsh(options = {
 
       if (prv !== false) {
         const id = dir + '/id_rsa';
-        commands.push(copy(key, id));
+        commands.push(cp(key, id));
         commands.push(chown(id, username + ':' + username));
         commands.push(chmod(id, '0600'));
       }
 
       if (pub !== false) {
         const keys = dir + 'authorized_keys';
-        commands.push(copy(key + '.pub', keys));
+        commands.push(cp(key + '.pub', keys));
         commands.push(chown(keys, username + ':' + username));
         commands.push(chmod(keys, '0600'));
       }
@@ -48,15 +48,16 @@ export default function createSsh(options = {
     description: 'Harden SSH',
     quiet: true,
     decide: () => {
-      return options.harden !== null;
+      return harden !== null;
     },
-    command: (box, data) => {
+    command: () => {
       const {
+        port,
         settings
-      } = options.harden;
+      } = harden;
 
       let pattern = [
-        ['#?Port.*', `Port ${data.ssh.port}`],
+        ['#?Port.*', `Port ${port}`],
         ['#?PermitRootLogin.*', 'PermitRootLogin no'],
         ['#?PasswordAuthentication.*', 'PasswordAuthentication no'],
         ['#?IgnoreRhosts.*', 'IgnoreRhosts yes'],
@@ -81,7 +82,7 @@ export default function createSsh(options = {
   const restarter = new Commander({
     description: 'Restart SSH',
     decide: () => {
-      return options.restart === true;
+      return restart === true;
     },
     command: () => {
       return ctl('restart', 'sshd');

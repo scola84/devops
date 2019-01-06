@@ -1,22 +1,22 @@
-import { Commander, chmod, chown, copy } from '@scola/ssh';
+import { Commander, chmod, chown, cp } from '@scola/ssh';
 
-export default function createCopy(options = {
-  copy: null
+export default function createCopy({
+  copy = null
 }) {
   return new Commander({
     description: 'Copy files',
     decide: () => {
-      return options.copy !== null;
+      return copy !== null;
     },
     command: (box, data) => {
       const commands = [];
 
-      options.copy.forEach(({ mod, opts, own, source, target }) => {
+      copy.forEach(({ mod, opts, own, source, target }) => {
         if (typeof opts === 'function') {
           opts = opts(box, data);
         }
 
-        commands.push(copy(source, target, opts));
+        commands.push(cp(source, target, opts));
 
         if (typeof own === 'function') {
           own = own(box, data);

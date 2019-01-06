@@ -1,20 +1,20 @@
 import { Commander, sed } from '@scola/ssh';
 
-export default function createUser(options = {
-  add: null,
-  remove: null
+export default function createUser({
+  add = null,
+  remove = null
 }) {
   const adder = new Commander({
     description: 'Add user',
     decide: () => {
-      return options.add !== null;
+      return add !== null;
     },
     command: () => {
-      return `adduser --gecos "" ${options.add.username}`;
+      return `adduser --gecos "" ${add.username}`;
     },
     answers: (box, data, line) => {
       return line.match(/password:$/) ?
-        options.add.password || 'tty' :
+        add.password || 'tty' :
         null;
     }
   });
@@ -22,24 +22,24 @@ export default function createUser(options = {
   const adderSudo = new Commander({
     description: 'Add user to sudo',
     decide: () => {
-      return options.add !== null;
+      return add !== null;
     },
     command: () => {
-      return `usermod -aG sudo ${options.add.username}`;
+      return `usermod -aG sudo ${add.username}`;
     }
   });
 
   const adderPassword = new Commander({
     description: 'Update password',
     decide: () => {
-      return options.add !== null;
+      return add !== null;
     },
     command: () => {
-      return `passwd ${options.add.username}`;
+      return `passwd ${add.username}`;
     },
     answers: (box, data, line) => {
       return line.match(/password:$/) ?
-        options.add.password || 'tty' :
+        add.password || 'tty' :
         null;
     }
   });
@@ -48,10 +48,10 @@ export default function createUser(options = {
     description: 'Update history',
     sudo: false,
     decide: () => {
-      return options.add !== null;
+      return add !== null;
     },
     command: () => {
-      const file = `/home/${options.add.username}/.bashrc`;
+      const file = `/home/${add.username}/.bashrc`;
 
       const disable = sed(file, [
         ['set +o history']
@@ -69,10 +69,10 @@ export default function createUser(options = {
   const remover = new Commander({
     description: 'Remove user',
     decide: () => {
-      return options.remove !== null;
+      return remove !== null;
     },
     command: () => {
-      return `userdel -rfRZ ${options.remove.username}`;
+      return `userdel -rfRZ ${remove.username}`;
     }
   });
 

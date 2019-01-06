@@ -1,18 +1,18 @@
 import { Commander, sed } from '@scola/ssh';
 
-export default function createSed(options = {
-  edit: null
+export default function createSed({
+  edit = null
 }) {
   const editor = new Commander({
     description: 'Edit files',
     quiet: true,
     decide: () => {
-      return options.edit !== null;
+      return edit !== null;
     },
     command: (box, data) => {
       const commands = [];
 
-      options.edit.forEach(({ file, pattern, replacer, section }) => {
+      edit.forEach(({ file, pattern, replacer, section }) => {
         if (typeof pattern === 'function') {
           pattern = pattern(box, data);
         }

@@ -1,18 +1,18 @@
 import { Commander, chmod, sed } from '@scola/ssh';
 
-export default function createSwap(options = {
-  update: false,
-  create: null
+export default function createSwap({
+  update = false,
+  create = null
 }) {
   const creator = new Commander({
     description: 'Create swap file',
     decide: () => {
-      return options.create !== null;
+      return create !== null;
     },
     command: () => {
       return [
         'swapoff -a',
-        `fallocate -l ${options.create.size} /swapfile`,
+        `fallocate -l ${create.size} /swapfile`,
         'mkswap /swapfile',
         'swapon /swapfile'
       ];
@@ -23,7 +23,7 @@ export default function createSwap(options = {
     description: 'Update swap file',
     quiet: true,
     decide: () => {
-      return options.update === false;
+      return update === false;
     },
     command: [
       chmod('/swapfile', '0600'),

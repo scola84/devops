@@ -1,14 +1,14 @@
 import { Commander, pkg } from '@scola/ssh';
 
-export default function createOs(options = {
-  install: false,
-  update: false,
-  upgrade: false
+export default function createOs({
+  install = false,
+  update = false,
+  upgrade = false
 }) {
   const upgrader = new Commander({
     description: 'Upgrade apt',
     decide: () => {
-      return options.upgrade === true;
+      return upgrade === true;
     },
     command: () => {
       return [
@@ -22,7 +22,7 @@ export default function createOs(options = {
   const installer = new Commander({
     description: 'Install apt packages',
     decide: () => {
-      return options.install === true;
+      return install === true;
     },
     command: () => {
       return [
@@ -35,7 +35,7 @@ export default function createOs(options = {
   const updater = new Commander({
     description: 'Update ctl',
     decide: () => {
-      return options.update === true;
+      return update === true;
     },
     command: (box, data) => {
       return [

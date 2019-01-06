@@ -1,20 +1,20 @@
 import { Commander, ctl, pkg } from '@scola/ssh';
 import { resolveMigration } from '../helper';
 
-export default function createMysql(options = {
-  install: false,
-  restart: false,
-  restrict: false,
-  secure: false,
-  create: null,
-  migrate: null,
-  root: {},
-  user: {}
+export default function createMysql({
+  install = false,
+  restart = false,
+  restrict = false,
+  secure = false,
+  create = null,
+  migrate = null,
+  root = {},
+  user = {}
 }) {
   const installer = new Commander({
     description: 'Install mysql',
     decide: () => {
-      return options.install === true;
+      return install === true;
     },
     command: () => {
       return pkg('install', 'mysql-server');
@@ -25,10 +25,9 @@ export default function createMysql(options = {
     description: 'Restrict mysql root access',
     quiet: true,
     decide: () => {
-      return options.restrict === true;
+      return restrict === true;
     },
     command: () => {
-      const { root } = options;
       const query = `ALTER USER "${root.username}"@"localhost" IDENTIFIED WITH mysql_native_password BY "${root.password}";`;
       return `mysql -u ${root.username} -N -B -e '${query}'`;
     }
@@ -37,14 +36,9 @@ export default function createMysql(options = {
   const securer = new Commander({
     description: 'Secure mysql',
     decide: () => {
-      return options.secure === true;
+      return secure === true;
     },
     command: () => {
-      const {
-        root,
-        user
-      } = options;
-
       const query = [
         `DELETE FROM mysql.user WHERE User="${root.username}" AND Host NOT IN ("localhost", "127.0.0.1", "::1")`,
         'DELETE FROM mysql.user WHERE User=""',
@@ -58,7 +52,7 @@ export default function createMysql(options = {
     },
     answers: (box, data, line) => {
       return line.match(/password:$/) ?
-        options.root.password :
+        root.password :
         null;
     }
   });
@@ -66,11 +60,9 @@ export default function createMysql(options = {
   const creator = new Commander({
     description: 'Create mysql databases',
     decide: () => {
-      return options.create !== null;
+      return create !== null;
     },
     command: (box, data) => {
-      let create = options.create;
-
       if (typeof create === 'function') {
         create = create(box, data);
       }
@@ -79,11 +71,11 @@ export default function createMysql(options = {
         return `CREATE DATABASE IF NOT EXISTS ${name}`;
       });
 
-      return `mysql -u ${options.user.username} -p -e '${query.join(';')}'`;
+      return `mysql -u ${user.username} -p -e '${query.join(';')}'`;
     },
     answers: (box, data, line) => {
       return line.match(/password:$/) ?
-        options.user.password :
+        user.password :
         null;
     }
   });
@@ -91,11 +83,9 @@ export default function createMysql(options = {
   const migrator = new Commander({
     description: 'Migrate mysql',
     decide: () => {
-      return options.migrate !== null;
+      return migrate !== null;
     },
     command: (box, data) => {
-      let migrate = options.migrate;
-
       if (typeof migrate === 'function') {
         migrate = migrate(box, data);
       }
@@ -105,7 +95,7 @@ export default function createMysql(options = {
 
       files.forEach(({ file, name }) => {
         commands.push(
-          `mysql -u ${options.user.username} -p -e 'USE ${name}; ${file}'`
+          `mysql -u ${user.username} -p -e 'USE ${name}; ${file}'`
         );
       });
 
@@ -113,7 +103,7 @@ export default function createMysql(options = {
     },
     answers: (box, data, line) => {
       return line.match(/password:$/) ?
-        options.user.password :
+        user.password :
         null;
     }
   });
@@ -121,7 +111,7 @@ export default function createMysql(options = {
   const restarter = new Commander({
     description: 'Restart mysql',
     decide: () => {
-      return options.restart === true;
+      return restart === true;
     },
     command: () => {
       return ctl('restart', 'mysql');

@@ -1,13 +1,13 @@
 import { Commander, pkg, sed } from '@scola/ssh';
 
-export default function createLogwatch(options = {
-  install: false,
-  update: null
+export default function createLogwatch({
+  install = false,
+  update = null
 }) {
   const installer = new Commander({
     description: 'Install logwatch',
     decide: () => {
-      return options.install === true;
+      return install === true;
     },
     command: () => {
       return pkg('install', 'logwatch');
@@ -18,14 +18,14 @@ export default function createLogwatch(options = {
     description: 'Update logwatch',
     quiet: true,
     decide: () => {
-      return options.update !== null;
+      return update !== null;
     },
     command: () => {
       const {
         from,
         to,
         settings
-      } = options.update;
+      } = update;
 
       let pattern = [];
 

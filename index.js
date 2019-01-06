@@ -7,25 +7,25 @@ import {
 } from './src/worker';
 
 import {
-  copy,
-  fail2ban,
-  git,
-  logwatch,
-  mkdir,
-  mysql,
-  nginx,
-  node,
-  npm,
-  ntp,
-  os,
-  pm2,
-  sed,
-  sendmail,
-  ssh,
-  swap,
-  sysctl,
-  ufw,
-  user
+  createCopy,
+  createFail2ban,
+  createGit,
+  createLogwatch,
+  createMkdir,
+  createMysql,
+  createNginx,
+  createNode,
+  createNpm,
+  createNtp,
+  createOs,
+  createPm2,
+  createSed,
+  createSendmail,
+  createSsh,
+  createSwap,
+  createSysctl,
+  createUfw,
+  createUser
 } from './src/factory';
 
 import {
@@ -41,25 +41,25 @@ export {
 };
 
 export {
-  copy,
-  fail2ban,
-  git,
-  logwatch,
-  mkdir,
-  mysql,
-  nginx,
-  node,
-  npm,
-  ntp,
-  os,
-  pm2,
-  sed,
-  sendmail,
-  ssh,
-  swap,
-  sysctl,
-  ufw,
-  user
+  createCopy,
+  createFail2ban,
+  createGit,
+  createLogwatch,
+  createMkdir,
+  createMysql,
+  createNginx,
+  createNode,
+  createNpm,
+  createNtp,
+  createOs,
+  createPm2,
+  createSed,
+  createSendmail,
+  createSsh,
+  createSwap,
+  createSysctl,
+  createUfw,
+  createUser
 };
 
 export {

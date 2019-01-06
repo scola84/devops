@@ -1,13 +1,13 @@
 import { Commander, sed } from '@scola/ssh';
 
-export default function createSysctl(options = {
-  update: false
+export default function createSysctl({
+  update = false
 }) {
   const updater = new Commander({
     description: 'Update sysctl',
     quiet: true,
     decide: () => {
-      return options.update === true;
+      return update === true;
     },
     command: () => {
       return sed('/etc/sysctl.conf', [

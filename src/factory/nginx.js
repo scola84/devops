@@ -1,13 +1,13 @@
 import { Commander, ctl, pkg } from '@scola/ssh';
 
-export default function createNginx(options = {
-  install: false,
-  restart: false
+export default function createNginx({
+  install = false,
+  restart = false
 }) {
   const installer = new Commander({
     description: 'Install nginx',
     decide: () => {
-      return options.install === true;
+      return install === true;
     },
     command: () => {
       return pkg('install', 'nginx');
@@ -17,7 +17,7 @@ export default function createNginx(options = {
   const restarter = new Commander({
     description: 'Restart nginx',
     decide: () => {
-      return options.restart === true;
+      return restart === true;
     },
     command: () => {
       return ctl('restart', 'nginx');

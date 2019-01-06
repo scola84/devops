@@ -1,14 +1,14 @@
 import { Commander, ctl, pkg, sed } from '@scola/ssh';
 
-export default function createFail2ban(options = {
-  install: false,
-  restart: false,
-  update: null
+export default function createFail2ban({
+  install = false,
+  restart = false,
+  update = null
 }) {
   const installer = new Commander({
     description: 'Install fail2ban',
     decide: () => {
-      return options.install === true;
+      return install === true;
     },
     command: [
       pkg('install', 'fail2ban')
@@ -19,19 +19,20 @@ export default function createFail2ban(options = {
     description: 'Update fail2ban',
     quiet: true,
     decide: () => {
-      return options.update !== null;
+      return update !== null;
     },
-    command: (box, data) => {
+    command: () => {
       const {
         from,
+        port,
         to,
         settings
-      } = options.update;
+      } = update;
 
       let pattern = [
         ['action = %(action_.*)s', 'action = %(action_mw)s'],
         ['bantime.*', 'bantime = 10m'],
-        ['port.*', `port = ${data.ssh.port}`, 'sshd']
+        ['port.*', `port = ${port}`, 'sshd']
       ];
 
       if (from && to) {
@@ -50,7 +51,7 @@ export default function createFail2ban(options = {
   const restarter = new Commander({
     description: 'Restart fail2ban',
     decide: () => {
-      return options.restart === true;
+      return restart === true;
     },
     command: [
       ctl('restart', 'fail2ban')

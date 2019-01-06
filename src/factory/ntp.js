@@ -1,13 +1,13 @@
 import { Commander, ctl, pkg } from '@scola/ssh';
 
-export default function createNtp(options = {
-  install: false,
-  restart: false
+export default function createNtp({
+  install = false,
+  restart = false
 }) {
   const installer = new Commander({
     description: 'Install NTP',
     decide: () => {
-      return options.install === true;
+      return install === true;
     },
     command: () => {
       return pkg('install', 'ntp');
@@ -17,7 +17,7 @@ export default function createNtp(options = {
   const restarter = new Commander({
     description: 'Restart NTP',
     decide: () => {
-      return options.restart === true;
+      return restart === true;
     },
     command: () => {
       return ctl('restart', 'ntp');

@@ -1,29 +1,29 @@
 import { Commander } from '@scola/ssh';
 
-export default function createNpm(options = {
-  execute: null,
-  login: null
+export default function createNpm({
+  execute = null,
+  login = null
 }) {
-  const login = new Commander({
+  const logger = new Commander({
     description: 'Login to npm',
     sudo: false,
     decide: () => {
-      return options.login !== null;
+      return login !== null;
     },
     command: () => {
       return 'npm login';
     },
     answers: (box, data, line) => {
       if (line.match(/username/i)) {
-        return options.login.username;
+        return login.username;
       }
 
       if (line.match(/password/i)) {
-        return options.login.password;
+        return login.password;
       }
 
       if (line.match(/email: \(this is public\)/i)) {
-        return options.login.email;
+        return login.email;
       }
 
       return null;
@@ -34,12 +34,12 @@ export default function createNpm(options = {
     description: 'Execute npm commands',
     sudo: false,
     decide: () => {
-      return options.execute !== null;
+      return execute !== null;
     },
     command: () => {
       const commands = [];
 
-      options.execute.forEach(({ name, path, script = '' }) => {
+      execute.forEach(({ name, path, script = '' }) => {
         if (path) {
           commands.push(`cd ${path}`);
         }
@@ -60,8 +60,8 @@ export default function createNpm(options = {
     }
   });
 
-  login
+  logger
     .connect(executer);
 
-  return [login, executer];
+  return [logger, executer];
 }
