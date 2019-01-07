@@ -1,6 +1,7 @@
 import { Commander, chmod, chown, cp } from '@scola/ssh';
 
 export default function createCopy({
+  base = '',
   copy = null
 }) {
   return new Commander({
@@ -16,7 +17,7 @@ export default function createCopy({
           opts = opts(box, data);
         }
 
-        commands.push(cp(source, target, opts));
+        commands.push(cp(base + '/' + source, target, opts));
 
         if (typeof own === 'function') {
           own = own(box, data);
