@@ -27,19 +27,20 @@ export default function createLogwatch({
         settings
       } = update;
 
-      let pattern = [];
+      let rules = [];
 
       if (from && to) {
-        pattern.push(['Output.*', 'Output = mail']);
-        pattern.push(['MailFrom.*', `MailFrom = ${from}`]);
-        pattern.push(['MailTo.*', `MailTo = ${to}`]);
+        rules.push(['Output.*', 'Output = mail']);
+        rules.push(['MailFrom.*', `MailFrom = ${from}`]);
+        rules.push(['MailTo.*', `MailTo = ${to}`]);
       }
 
       if (settings) {
-        pattern = pattern.concat(settings);
+        rules = rules.concat(settings);
       }
 
-      return sed('/usr/share/logwatch/default.conf/logwatch.conf', pattern);
+      return sed('/usr/share/logwatch/default.conf/logwatch.conf',
+        rules);
     }
   });
 

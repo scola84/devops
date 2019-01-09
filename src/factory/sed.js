@@ -13,6 +13,10 @@ export default function createSed({
       const commands = [];
 
       edit.forEach(({ file, pattern, replacer, section }) => {
+        if (typeof file === 'function') {
+          file = file(box, data);
+        }
+
         if (typeof pattern === 'function') {
           pattern = pattern(box, data);
         }

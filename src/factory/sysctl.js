@@ -18,7 +18,9 @@ export default function createSysctl({
         ['net.ipv4.conf.all.send_redirects = 0'],
         ['net.ipv4.conf.all.accept_source_route = 0'],
         ['net.ipv4.conf.all.log_martians = 1'],
-      ]);
+      ], {
+        escape: true
+      });
     }
   });
 

@@ -21,7 +21,7 @@ export default function createSsh({
       const dir = `/home/${username}/.ssh`;
 
       const commands = [
-        `mkdir ${dir}`,
+        `ls ${dir} || mkdir ${dir}`,
         chown(dir, username + ':' + username),
         chmod(dir, '0700')
       ];
@@ -34,7 +34,7 @@ export default function createSsh({
       }
 
       if (pub !== false) {
-        const keys = dir + 'authorized_keys';
+        const keys = dir + '/authorized_keys';
         commands.push(cp(key + '.pub', keys));
         commands.push(chown(keys, username + ':' + username));
         commands.push(chmod(keys, '0600'));
@@ -56,7 +56,7 @@ export default function createSsh({
         settings
       } = harden;
 
-      let pattern = [
+      let rules = [
         ['#?Port.*', `Port ${port}`],
         ['#?PermitRootLogin.*', 'PermitRootLogin no'],
         ['#?PasswordAuthentication.*', 'PasswordAuthentication no'],
@@ -72,17 +72,17 @@ export default function createSsh({
       ];
 
       if (settings) {
-        pattern = pattern.concat(settings);
+        rules = rules.concat(settings);
       }
 
-      return sed('/etc/ssh/sshd_config', pattern);
+      return sed('/etc/ssh/sshd_config', rules);
     }
   });
 
   const restarter = new Commander({
     description: 'Restart SSH',
-    decide: (box) => {
-      return restart === true && box.start === true;
+    decide: () => {
+      return restart === true;
     },
     command: () => {
       return ctl('restart', 'sshd');

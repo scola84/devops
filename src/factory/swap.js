@@ -27,8 +27,9 @@ export default function createSwap({
     },
     command: [
       chmod('/swapfile', '0600'),
-      sed('/etc/fstab', '\\/swapfile none swap ws 0 0',
-        '/swapfile none swap ws 0 0')
+      sed('/etc/fstab', [
+        ['\\/swapfile none swap ws 0 0', '/swapfile none swap ws 0 0']
+      ])
     ]
   });
 

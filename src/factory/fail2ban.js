@@ -29,22 +29,22 @@ export default function createFail2ban({
         settings
       } = update;
 
-      let pattern = [
+      let rules = [
         ['action = %(action_.*)s', 'action = %(action_mw)s'],
         ['bantime.*', 'bantime = 10m'],
         ['port.*', `port = ${port}`, 'sshd']
       ];
 
       if (from && to) {
-        pattern.push(['sender.*', `sender = ${from}`]);
-        pattern.push(['destemail.*', `destemail = ${to}`]);
+        rules.push(['sender.*', `sender = ${from}`]);
+        rules.push(['destemail.*', `destemail = ${to}`]);
       }
 
       if (settings) {
-        pattern = pattern.concat(settings);
+        rules = rules.concat(settings);
       }
 
-      return sed('/etc/fail2ban/jail.conf', pattern);
+      return sed('/etc/fail2ban/jail.conf', rules);
     }
   });
 

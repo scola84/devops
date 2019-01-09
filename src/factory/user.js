@@ -2,6 +2,9 @@ import { Commander, sed } from '@scola/ssh';
 
 export default function createUser({
   add = null,
+  group = null,
+  history = null,
+  password = null,
   remove = null
 }) {
   const adder = new Commander({
@@ -19,39 +22,39 @@ export default function createUser({
     }
   });
 
-  const adderSudo = new Commander({
-    description: 'Add user to sudo',
+  const grouper = new Commander({
+    description: 'Add user to groups',
     decide: () => {
-      return add !== null;
+      return group !== null;
     },
     command: () => {
-      return `usermod -aG sudo ${add.username}`;
+      return `usermod -aG ${group.name} ${group.username}`;
     }
   });
 
-  const adderPassword = new Commander({
-    description: 'Update password',
+  const passwordUpdater = new Commander({
+    description: 'Update user password',
     decide: () => {
-      return add !== null;
+      return password !== null;
     },
     command: () => {
-      return `passwd ${add.username}`;
+      return `passwd ${password.username}`;
     },
     answers: (box, data, line) => {
       return line.match(/password:$/) ?
-        add.password || 'tty' :
+        password.password || 'tty' :
         null;
     }
   });
 
-  const adderHistory = new Commander({
-    description: 'Update history',
+  const historyUpdater = new Commander({
+    description: 'Update user history',
     sudo: false,
     decide: () => {
-      return add !== null;
+      return history !== null;
     },
     command: () => {
-      const file = `/home/${add.username}/.bashrc`;
+      const file = `/home/${history.username}/.bashrc`;
 
       const disable = sed(file, [
         ['set +o history']
@@ -77,9 +80,10 @@ export default function createUser({
   });
 
   adder
-    .connect(adderSudo)
-    .connect(adderPassword)
-    .connect(adderHistory)
+    .connect(adder)
+    .connect(grouper)
+    .connect(passwordUpdater)
+    .connect(historyUpdater)
     .connect(remover);
 
   return [adder, remover];

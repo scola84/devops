@@ -11,23 +11,28 @@ export default function createMkdir({
     command: (box, data) => {
       const commands = [];
 
-      create.forEach((mod, own, path) => {
-        commands.push(`mkdir -p ${path}`);
-
-        if (typeof own === 'function') {
-          own = own(box, data);
-        }
+      create.forEach(({ mod, own, path }) => {
 
         if (typeof mod === 'function') {
           mod = mod(box, data);
         }
 
-        if (own) {
-          commands.push(chown(path, own));
+        if (typeof own === 'function') {
+          own = own(box, data);
         }
+
+        if (typeof path === 'function') {
+          path = path(box, data);
+        }
+
+        commands.push(`mkdir -p ${path}`);
 
         if (mod) {
           commands.push(chmod(path, mod));
+        }
+
+        if (own) {
+          commands.push(chown(path, own));
         }
       });
 
