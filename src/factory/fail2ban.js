@@ -50,6 +50,7 @@ export default function createFail2ban({
 
   const restarter = new Commander({
     description: 'Restart fail2ban',
+    confirm: true,
     decide: (box) => {
       return restart === true && box.start === true;
     },

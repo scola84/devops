@@ -4,8 +4,8 @@ export default function resolveMigration(migrate) {
   const files = [];
 
   const {
-    from,
-    to
+    from = '',
+      to = ''
   } = migrate.version;
 
   const direction = to > from ?

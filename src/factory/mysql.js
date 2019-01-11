@@ -43,13 +43,13 @@ export default function createMysql({
     },
     command: () => {
       const query = [
-        `ALTER USER "${root.username}"@"localhost" IDENTIFIED WITH mysql_native_password BY "${root.password}"`
+        'SET SQL_LOG_BIN = OFF',
+        'SET GLOBAL SUPER_READ_ONLY = OFF',
+        `ALTER USER "${root.username}"@"localhost" IDENTIFIED WITH mysql_native_password BY "${root.password}"`,
+        'SET SQL_LOG_BIN = ON'
       ];
 
-      query.unshift('SET SQL_LOG_BIN = OFF');
-      query.push('SET SQL_LOG_BIN = ON');
-
-      return `mysql -u ${root.username} -N -B -e '${query}'`;
+      return `mysql -u ${root.username} -N -B -e '${query.join(';')}'`;
     }
   });
 
@@ -60,13 +60,13 @@ export default function createMysql({
     },
     command: () => {
       const query = [
+        'SET SQL_LOG_BIN = OFF',
+        'SET GLOBAL SUPER_READ_ONLY = OFF',
         `DELETE FROM mysql.user WHERE User="${root.username}" AND Host NOT IN ("localhost", "127.0.0.1", "::1")`,
         'DELETE FROM mysql.user WHERE User=""',
-        'DROP DATABASE IF EXISTS test'
+        'DROP DATABASE IF EXISTS test',
+        'SET SQL_LOG_BIN = ON'
       ];
-
-      query.unshift('SET SQL_LOG_BIN = OFF');
-      query.push('SET SQL_LOG_BIN = ON');
 
       return `mysql -u ${root.username} -p -e '${query.join(';')}'`;
     },
@@ -83,7 +83,10 @@ export default function createMysql({
       return add !== null;
     },
     command: () => {
-      const query = [];
+      const query = [
+        'SET SQL_LOG_BIN = OFF',
+        'SET GLOBAL SUPER_READ_ONLY = OFF'
+      ];
 
       add.forEach(({ extra = '', host, username, password, privileges }) => {
         query.push(`CREATE USER IF NOT EXISTS "${username}"@"${host}" IDENTIFIED BY "${password}" ${extra}`);
@@ -91,7 +94,6 @@ export default function createMysql({
         query.push(`GRANT ${privileges} ON *.* TO "${username}"@"${host}" WITH GRANT OPTION`);
       });
 
-      query.unshift('SET SQL_LOG_BIN = OFF');
       query.push('SET SQL_LOG_BIN = ON');
 
       return `mysql -u ${root.username} -p -e '${query.join(';')}'`;
@@ -115,11 +117,15 @@ export default function createMysql({
         creation = creation(box, data);
       }
 
-      const query = creation.map(({ name }) => {
-        return `CREATE DATABASE IF NOT EXISTS ${name}`;
+      const query = [
+        'SET SQL_LOG_BIN = OFF',
+        'SET GLOBAL SUPER_READ_ONLY = OFF'
+      ];
+
+      creation.forEach(({ name }) => {
+        query.push(`CREATE DATABASE IF NOT EXISTS ${name}`);
       });
 
-      query.unshift('SET SQL_LOG_BIN = OFF');
       query.push('SET SQL_LOG_BIN = ON');
 
       return `mysql -u ${root.username} -p -e '${query.join(';')}'`;
@@ -133,8 +139,9 @@ export default function createMysql({
 
   const migrator = new Commander({
     description: 'Migrate mysql',
-    decide: () => {
-      return migrate !== null;
+    confirm: true,
+    decide: (box) => {
+      return migrate !== null && box.migration === true;
     },
     command: (box, data) => {
       let migration = migrate;
@@ -144,7 +151,7 @@ export default function createMysql({
       }
 
       if (migration === null) {
-        return null;
+        return '';
       }
 
       const commands = [];
@@ -153,14 +160,12 @@ export default function createMysql({
 
       files.forEach(({ file, name }) => {
         query = [
-          'SET SQL_LOG_BIN = OFF',
           `USE ${name}`,
-          file,
-          'SET SQL_LOG_BIN = ON'
+          file
         ];
 
         commands.push(
-          `mysql -u ${root.username} -p -e '${query.join(';')}`
+          `mysql -u ${root.username} -p -e '${query.join(';')}'`
         );
       });
 
@@ -175,8 +180,9 @@ export default function createMysql({
 
   const replicator = new Commander({
     description: 'Replicate mysql',
-    decide: () => {
-      return replicate !== null;
+    confirm: true,
+    decide: (box) => {
+      return replicate !== null && box.groupReplication === true;
     },
     command: (box, data) => {
       let replication = replicate;
@@ -186,24 +192,40 @@ export default function createMysql({
       }
 
       if (replication === null) {
-        return null;
+        return '';
+      }
+
+      const commands = [];
+
+      if (replication.bootstrap === false) {
+        const rsync = [
+          'rsync',
+          '-Sa',
+          `-e "ssh -q -i ${replication.rsync.key} -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -p ${replication.rsync.port}"`,
+          `--port ${replication.rsync.port}`,
+          '--exclude=*.pem',
+          '--exclude=auto.cnf',
+          `${replication.rsync.username}@${replication.rsync.host}:/var/lib/mysql/*`,
+          '/var/lib/mysql'
+        ].join(' ');
+
+        commands.push(ctl('stop', 'mysql'));
+        commands.push(rsync);
+        commands.push(ctl('start', 'mysql'));
       }
 
       const query = [
-        `CHANGE MASTER TO MASTER_USER = "${replication.username}", MASTER_PASSWORD = "${replication.password}" FOR CHANNEL "group_replication_recovery"`,
+        'SET SQL_LOG_BIN = OFF',
+        'SET GLOBAL SUPER_READ_ONLY = OFF',
+        `CHANGE MASTER TO MASTER_USER = "${replication.mysql.username}", MASTER_PASSWORD = "${replication.mysql.password}" FOR CHANNEL "group_replication_recovery"`,
+        'SET SQL_LOG_BIN = ON'
       ];
 
-      if (replication.bootstrap) {
-        query.push('SET GLOBAL group_replication_bootstrap_group = ON');
-      }
+      commands.push(
+        `mysql -u ${root.username} -p -e '${query.join(';')}'`
+      );
 
-      query.push('START GROUP_REPLICATION');
-
-      if (replication.bootstrap) {
-        query.push('SET GLOBAL group_replication_bootstrap_group = OFF');
-      }
-
-      return `mysql -u ${root.username} -p -e '${query.join(';')}'`;
+      return commands;
     },
     answers: (box, data, line) => {
       return line.match(/password:$/) ?
@@ -214,8 +236,9 @@ export default function createMysql({
 
   const restarter = new Commander({
     description: 'Restart mysql',
-    decide: () => {
-      return restart === true;
+    confirm: true,
+    decide: (box) => {
+      return restart === true && box.start === true;
     },
     command: () => {
       return ctl('restart', 'mysql');

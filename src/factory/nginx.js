@@ -16,6 +16,7 @@ export default function createNginx({
 
   const restarter = new Commander({
     description: 'Restart nginx',
+    confirm: true,
     decide: (box) => {
       return restart === true && box.start === true;
     },

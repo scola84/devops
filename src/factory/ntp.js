@@ -16,6 +16,7 @@ export default function createNtp({
 
   const restarter = new Commander({
     description: 'Restart NTP',
+    confirm: true,
     decide: (box) => {
       return restart === true && box.start === true;
     },
