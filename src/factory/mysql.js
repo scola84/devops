@@ -18,17 +18,18 @@ export default function createMysql({
       return install !== null;
     },
     command: () => {
-      let commands = [
-        pkg('install', 'mysql-server')
-      ];
+      const commands = [];
 
-      if (install.version) {
-        commands = [
-          `curl -OL https://dev.mysql.com/get/mysql-apt-config_${install.version}.deb`,
-          `DEBIAN_FRONTEND=noninteractive dpkg -i mysql-apt-config_${install.version}.deb`,
-          pkg('update'),
-          `rm mysql-apt-config_${install.version}.deb`
-        ].concat(commands);
+      if (install.server) {
+        commands.push(`curl -OL https://dev.mysql.com/get/mysql-apt-config_${install.version}.deb`);
+        commands.push(`DEBIAN_FRONTEND=noninteractive dpkg -i mysql-apt-config_${install.version}.deb`);
+        commands.push(pkg('update'));
+        commands.push(`rm mysql-apt-config_${install.server}.deb`);
+        commands.push(pkg('install', 'mysql-server'));
+      }
+
+      if (install.router) {
+        commands.push(pkg('install', 'mysql-router'));
       }
 
       return commands;
