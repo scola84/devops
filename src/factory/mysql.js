@@ -27,10 +27,13 @@ export default function createMysql({
       const commands = [];
 
       if (server) {
-        commands.push(`curl -OL https://dev.mysql.com/get/mysql-apt-config_${install.version}.deb`);
-        commands.push(`DEBIAN_FRONTEND=noninteractive dpkg -i mysql-apt-config_${install.version}.deb`);
-        commands.push(pkg('update'));
-        commands.push(`rm mysql-apt-config_${server}.deb`);
+        if (typeof server === 'string') {
+          commands.push(`curl -OL https://dev.mysql.com/get/mysql-apt-config_${install.version}.deb`);
+          commands.push(`DEBIAN_FRONTEND=noninteractive dpkg -i mysql-apt-config_${install.version}.deb`);
+          commands.push(pkg('update'));
+          commands.push(`rm mysql-apt-config_${server}.deb`);
+        }
+
         commands.push(pkg('install', 'mysql-server'));
       }
 
