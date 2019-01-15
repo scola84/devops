@@ -141,8 +141,8 @@ export default function createMysql({
   const migrator = new Commander({
     description: 'Migrate mysql',
     confirm: true,
-    decide: (box) => {
-      return migrate !== null && box.migration === true;
+    decide: () => {
+      return migrate !== null;
     },
     command: (box, data) => {
       let migration = migrate;
@@ -182,8 +182,8 @@ export default function createMysql({
   const replicator = new Commander({
     description: 'Replicate mysql',
     confirm: true,
-    decide: (box) => {
-      return replicate !== null && box.groupReplication === true;
+    decide: () => {
+      return replicate !== null;
     },
     command: (box, data) => {
       let replication = replicate;
