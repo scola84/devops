@@ -1,4 +1,5 @@
 import { Commander } from '@scola/ssh';
+import { Worker } from '@scola/worker';
 
 export default function createPm2({
   install = false,
@@ -6,12 +7,12 @@ export default function createPm2({
   startup = false,
   start = null
 }) {
+  const beginner = new Worker();
+  const ender = new Worker();
+
   const installer = new Commander({
     description: 'Install pm2',
-    decide: () => {
-      return install === true;
-    },
-    command: () => {
+    command() {
       return 'npm install pm2 --global';
     }
   });
@@ -19,10 +20,7 @@ export default function createPm2({
   const startupper = new Commander({
     description: 'Startup pm2',
     sudo: false,
-    decide: () => {
-      return startup === true;
-    },
-    command: () => {
+    command() {
       return 'pm2 startup | tail -n 1 | bash';
     }
   });
@@ -31,13 +29,14 @@ export default function createPm2({
     description: 'Start pm2 apps',
     confirm: true,
     sudo: false,
-    decide: (box) => {
-      return start !== null && box.start === true;
+    decide(box) {
+      return box.start === true;
     },
-    command: () => {
+    command(box, data) {
       const commands = [];
+      const items = this.resolve(start, box, data);
 
-      start.forEach(({ args = '', name, opts = [], path }) => {
+      items.forEach(({ args = '', name, opts = [], path }) => {
         commands.push([
           `pm2 reload ${name}`,
           `pm2 start ${opts.join(' ')} -n ${name} ${path} -- ${args}`
@@ -51,18 +50,17 @@ export default function createPm2({
   const saver = new Commander({
     description: 'Save pm2',
     sudo: false,
-    decide: () => {
-      return save === true;
-    },
-    command: () => {
+    command() {
       return 'pm2 save';
     }
   });
 
-  installer
-    .connect(startupper)
-    .connect(starter)
-    .connect(saver);
+  beginner
+    .connect(install === true ? installer : null)
+    .connect(startup === true ? startupper : null)
+    .connect(start !== null ? starter : null)
+    .connect(save === true ? saver : null)
+    .connect(ender);
 
-  return [installer, saver];
+  return [beginner, ender];
 }

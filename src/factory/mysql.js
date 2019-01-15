@@ -1,4 +1,5 @@
 import { Commander, ctl, pkg } from '@scola/ssh';
+import { Worker } from '@scola/worker';
 import { resolveMigration } from '../helper';
 
 export default function createMysql({
@@ -12,23 +13,28 @@ export default function createMysql({
   replicate = null,
   root = {},
 }) {
+  const beginner = new Worker();
+  const ender = new Worker();
+
   const installer = new Commander({
     description: 'Install mysql',
-    decide: () => {
-      return install !== null;
-    },
-    command: () => {
+    command(box, data) {
+      const {
+        server,
+        router
+      } = this.resolve(install, box, data);
+
       const commands = [];
 
-      if (install.server) {
+      if (server) {
         commands.push(`curl -OL https://dev.mysql.com/get/mysql-apt-config_${install.version}.deb`);
         commands.push(`DEBIAN_FRONTEND=noninteractive dpkg -i mysql-apt-config_${install.version}.deb`);
         commands.push(pkg('update'));
-        commands.push(`rm mysql-apt-config_${install.server}.deb`);
+        commands.push(`rm mysql-apt-config_${server}.deb`);
         commands.push(pkg('install', 'mysql-server'));
       }
 
-      if (install.router) {
+      if (router) {
         commands.push(pkg('install', 'mysql-router'));
       }
 
@@ -39,10 +45,7 @@ export default function createMysql({
   const restrictor = new Commander({
     description: 'Restrict mysql root access',
     quiet: true,
-    decide: () => {
-      return restrict === true;
-    },
-    command: () => {
+    command() {
       const query = [
         'SET SQL_LOG_BIN = OFF',
         'SET GLOBAL SUPER_READ_ONLY = OFF',
@@ -56,10 +59,7 @@ export default function createMysql({
 
   const securer = new Commander({
     description: 'Secure mysql',
-    decide: () => {
-      return secure === true;
-    },
-    command: () => {
+    command() {
       const query = [
         'SET SQL_LOG_BIN = OFF',
         'SET GLOBAL SUPER_READ_ONLY = OFF',
@@ -71,7 +71,7 @@ export default function createMysql({
 
       return `mysql -u ${root.username} -p -e '${query.join(';')}'`;
     },
-    answers: (box, data, line) => {
+    answers(box, data, line) {
       return line.match(/password:$/) ?
         root.password :
         null;
@@ -80,16 +80,15 @@ export default function createMysql({
 
   const adder = new Commander({
     description: 'Add mysql user',
-    decide: () => {
-      return add !== null;
-    },
-    command: () => {
+    command(box, data) {
+      const items = this.resolve(add, box, data);
+
       const query = [
         'SET SQL_LOG_BIN = OFF',
         'SET GLOBAL SUPER_READ_ONLY = OFF'
       ];
 
-      add.forEach(({ extra = '', host, username, password, privileges }) => {
+      items.forEach(({ extra = '', host, username, password, privileges }) => {
         query.push(`CREATE USER IF NOT EXISTS "${username}"@"${host}" IDENTIFIED BY "${password}" ${extra}`);
         query.push(`ALTER USER "${username}"@"${host}" IDENTIFIED WITH mysql_native_password BY "${password}"`);
         query.push(`GRANT ${privileges} ON *.* TO "${username}"@"${host}" WITH GRANT OPTION`);
@@ -99,7 +98,7 @@ export default function createMysql({
 
       return `mysql -u ${root.username} -p -e '${query.join(';')}'`;
     },
-    answers: (box, data, line) => {
+    answers(box, data, line) {
       return line.match(/password:$/) ?
         root.password :
         null;
@@ -108,22 +107,15 @@ export default function createMysql({
 
   const creator = new Commander({
     description: 'Create mysql databases',
-    decide: () => {
-      return create !== null;
-    },
-    command: (box, data) => {
-      let creation = create;
-
-      if (typeof creation === 'function') {
-        creation = creation(box, data);
-      }
+    command(box, data) {
+      const items = this.resolve(create, box, data);
 
       const query = [
         'SET SQL_LOG_BIN = OFF',
         'SET GLOBAL SUPER_READ_ONLY = OFF'
       ];
 
-      creation.forEach(({ name }) => {
+      items.forEach(({ name }) => {
         query.push(`CREATE DATABASE IF NOT EXISTS ${name}`);
       });
 
@@ -131,7 +123,7 @@ export default function createMysql({
 
       return `mysql -u ${root.username} -p -e '${query.join(';')}'`;
     },
-    answers: (box, data, line) => {
+    answers(box, data, line) {
       return line.match(/password:$/) ?
         root.password :
         null;
@@ -141,15 +133,8 @@ export default function createMysql({
   const migrator = new Commander({
     description: 'Migrate mysql',
     confirm: true,
-    decide: () => {
-      return migrate !== null;
-    },
-    command: (box, data) => {
-      let migration = migrate;
-
-      if (typeof migration === 'function') {
-        migration = migration(box, data);
-      }
+    command(box, data) {
+      const migration = this.resolve(migrate, box, data);
 
       if (migration === null) {
         return '';
@@ -172,7 +157,7 @@ export default function createMysql({
 
       return commands;
     },
-    answers: (box, data, line) => {
+    answers(box, data, line) {
       return line.match(/password:$/) ?
         root.password :
         null;
@@ -182,15 +167,8 @@ export default function createMysql({
   const replicator = new Commander({
     description: 'Replicate mysql',
     confirm: true,
-    decide: () => {
-      return replicate !== null;
-    },
-    command: (box, data) => {
-      let replication = replicate;
-
-      if (typeof replication === 'function') {
-        replication = replication(box, data);
-      }
+    command(box, data) {
+      const replication = this.resolve(replicate, box, data);
 
       if (replication === null) {
         return '';
@@ -228,7 +206,7 @@ export default function createMysql({
 
       return commands;
     },
-    answers: (box, data, line) => {
+    answers(box, data, line) {
       return line.match(/password:$/) ?
         root.password :
         null;
@@ -238,22 +216,24 @@ export default function createMysql({
   const restarter = new Commander({
     description: 'Restart mysql',
     confirm: true,
-    decide: (box) => {
-      return restart === true && box.start === true;
+    decide(box) {
+      return box.start === true;
     },
-    command: () => {
+    command() {
       return ctl('restart', 'mysql');
     }
   });
 
-  installer
-    .connect(restrictor)
-    .connect(securer)
-    .connect(adder)
-    .connect(creator)
-    .connect(migrator)
-    .connect(replicator)
-    .connect(restarter);
+  beginner
+    .connect(install !== null ? installer : null)
+    .connect(restrict === true ? restrictor : null)
+    .connect(secure === true ? securer : null)
+    .connect(add !== null ? adder : null)
+    .connect(create !== null ? creator : null)
+    .connect(migrate !== null ? migrator : null)
+    .connect(replicate !== null ? replicator : null)
+    .connect(restart === true ? restarter : null)
+    .connect(ender);
 
-  return [installer, restarter];
+  return [beginner, ender];
 }

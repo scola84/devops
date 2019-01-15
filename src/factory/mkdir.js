@@ -5,26 +5,11 @@ export default function createMkdir({
 }) {
   const creator = new Commander({
     description: 'Create directories',
-    decide: () => {
-      return create !== null;
-    },
-    command: (box, data) => {
+    command(box, data) {
       const commands = [];
+      const items = this.resolve(create, box, data);
 
-      create.forEach(({ mod, own, path }) => {
-
-        if (typeof mod === 'function') {
-          mod = mod(box, data);
-        }
-
-        if (typeof own === 'function') {
-          own = own(box, data);
-        }
-
-        if (typeof path === 'function') {
-          path = path(box, data);
-        }
-
+      items.forEach(({ mod, own, path }) => {
         commands.push(`mkdir -p ${path}`);
 
         if (mod) {
@@ -40,5 +25,5 @@ export default function createMkdir({
     }
   });
 
-  return creator;
+  return create !== null ? creator : null;
 }

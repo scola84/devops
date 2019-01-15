@@ -6,10 +6,7 @@ export default function createSysctl({
   const updater = new Commander({
     description: 'Update sysctl',
     quiet: true,
-    decide: () => {
-      return update === true;
-    },
-    command: () => {
+    command() {
       return sed('/etc/sysctl.conf', [
         ['net.ipv4.conf.default.rp_filter=1'],
         ['net.ipv4.conf.all.rp_filter=1'],
@@ -24,5 +21,5 @@ export default function createSysctl({
     }
   });
 
-  return updater;
+  return update === true ? updater : null;
 }

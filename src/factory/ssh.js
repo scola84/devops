@@ -1,22 +1,23 @@
 import { Commander, chmod, chown, cp, ctl, sed } from '@scola/ssh';
+import { Worker } from '@scola/worker';
 
 export default function createSsh({
   restart = false,
   harden = null,
   add = null
 }) {
+  const beginner = new Worker();
+  const ender = new Worker();
+
   const adder = new Commander({
     description: 'Add SSH key',
-    decide: () => {
-      return add !== null;
-    },
-    command: () => {
+    command(box, data) {
       const {
         key,
         prv,
         pub,
         username
-      } = add;
+      } = this.resolve(add, box, data);
 
       const dir = `/home/${username}/.ssh`;
 
@@ -47,14 +48,11 @@ export default function createSsh({
   const hardener = new Commander({
     description: 'Harden SSH',
     quiet: true,
-    decide: () => {
-      return harden !== null;
-    },
-    command: () => {
+    command(box, data) {
       const {
         port,
         settings
-      } = harden;
+      } = this.resolve(harden, box, data);
 
       let rules = [
         ['#?Port.*', `Port ${port}`],
@@ -82,17 +80,19 @@ export default function createSsh({
   const restarter = new Commander({
     description: 'Restart SSH',
     confirm: true,
-    decide: (box) => {
-      return restart === true && box.start === true;
+    decide(box) {
+      return box.start === true;
     },
-    command: () => {
+    command() {
       return ctl('restart', 'sshd');
     }
   });
 
-  adder
-    .connect(hardener)
-    .connect(restarter);
+  beginner
+    .connect(add !== null ? adder : null)
+    .connect(harden !== null ? hardener : null)
+    .connect(restart === true ? restarter : null)
+    .connect(ender);
 
-  return [adder, restarter];
+  return [beginner, ender];
 }

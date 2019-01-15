@@ -1,15 +1,16 @@
 import { Commander, pkg, sed } from '@scola/ssh';
+import { Worker } from '@scola/worker';
 
 export default function createLogwatch({
   install = false,
   update = null
 }) {
+  const beginner = new Worker();
+  const ender = new Worker();
+
   const installer = new Commander({
     description: 'Install logwatch',
-    decide: () => {
-      return install === true;
-    },
-    command: () => {
+    command() {
       return pkg('install', 'logwatch');
     }
   });
@@ -17,15 +18,12 @@ export default function createLogwatch({
   const updater = new Commander({
     description: 'Update logwatch',
     quiet: true,
-    decide: () => {
-      return update !== null;
-    },
-    command: () => {
+    command(box, data) {
       const {
         from,
         to,
         settings
-      } = update;
+      } = this.resolve(update, box, data);
 
       let rules = [];
 
@@ -44,8 +42,10 @@ export default function createLogwatch({
     }
   });
 
-  installer
-    .connect(updater);
+  beginner
+    .connect(install === true ? installer : null)
+    .connect(update !== null ? updater : null)
+    .connect(ender);
 
-  return [installer, updater];
+  return [beginner, ender];
 }

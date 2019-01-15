@@ -1,15 +1,16 @@
 import { Commander, ctl, pkg } from '@scola/ssh';
+import { Worker } from '@scola/worker';
 
 export default function createNginx({
   install = false,
   restart = false
 }) {
+  const beginner = new Worker();
+  const ender = new Worker();
+
   const installer = new Commander({
     description: 'Install nginx',
-    decide: () => {
-      return install === true;
-    },
-    command: () => {
+    command() {
       return pkg('install', 'nginx');
     }
   });
@@ -17,16 +18,18 @@ export default function createNginx({
   const restarter = new Commander({
     description: 'Restart nginx',
     confirm: true,
-    decide: (box) => {
-      return restart === true && box.start === true;
+    decide(box) {
+      return box.start === true;
     },
-    command: () => {
+    command() {
       return ctl('restart', 'nginx');
     }
   });
 
-  installer
-    .connect(restarter);
+  beginner
+    .connect(install === true ? installer : null)
+    .connect(restart === true ? restarter : null)
+    .connect(ender);
 
-  return [installer, restarter];
+  return [beginner, ender];
 }

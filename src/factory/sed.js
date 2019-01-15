@@ -6,29 +6,11 @@ export default function createSed({
   const editor = new Commander({
     description: 'Edit files',
     quiet: true,
-    decide: () => {
-      return edit !== null;
-    },
-    command: (box, data) => {
+    command(box, data) {
       const commands = [];
+      const items = this.resolve(edit, box, data);
 
-      edit.forEach(({ file, pattern, replacer, section }) => {
-        if (typeof file === 'function') {
-          file = file(box, data);
-        }
-
-        if (typeof pattern === 'function') {
-          pattern = pattern(box, data);
-        }
-
-        if (typeof replacer === 'function') {
-          replacer = replacer(box, data);
-        }
-
-        if (typeof section === 'function') {
-          section = section(box, data);
-        }
-
+      items.forEach(({ file, pattern, replacer, section }) => {
         commands.push(sed(file, pattern, replacer, section));
       });
 
@@ -36,5 +18,5 @@ export default function createSed({
     }
   });
 
-  return editor;
+  return edit !== null ? editor : null;
 }

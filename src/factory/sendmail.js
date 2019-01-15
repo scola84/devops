@@ -5,13 +5,12 @@ export default function createSendmail({
 }) {
   const installer = new Commander({
     description: 'Install sendmail',
-    decide: () => {
-      return install === true;
-    },
-    command: [
-      pkg('install', 'sendmail-bin sendmail')
-    ]
+    command() {
+      return [
+        pkg('install', 'sendmail-bin sendmail')
+      ];
+    }
   });
 
-  return installer;
+  return install === true ? installer : null;
 }

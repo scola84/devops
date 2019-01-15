@@ -1,33 +1,33 @@
 import { Commander, ctl, pkg, sed } from '@scola/ssh';
+import { Worker } from '@scola/worker';
 
 export default function createFail2ban({
   install = false,
   restart = false,
   update = null
 }) {
+  const beginner = new Worker();
+  const ender = new Worker();
+
   const installer = new Commander({
     description: 'Install fail2ban',
-    decide: () => {
-      return install === true;
-    },
-    command: [
-      pkg('install', 'fail2ban')
-    ]
+    command() {
+      return [
+        pkg('install', 'fail2ban')
+      ];
+    }
   });
 
   const updater = new Commander({
     description: 'Update fail2ban',
     quiet: true,
-    decide: () => {
-      return update !== null;
-    },
-    command: () => {
+    command(box, data) {
       const {
         from,
         port,
         to,
         settings
-      } = update;
+      } = this.resolve(update, box, data);
 
       let rules = [
         ['action = %(action_.*)s', 'action = %(action_mw)s'],
@@ -51,17 +51,21 @@ export default function createFail2ban({
   const restarter = new Commander({
     description: 'Restart fail2ban',
     confirm: true,
-    decide: (box) => {
-      return restart === true && box.start === true;
+    decide(box) {
+      return box.start === true;
     },
-    command: [
-      ctl('restart', 'fail2ban')
-    ]
+    command() {
+      return [
+        ctl('restart', 'fail2ban')
+      ];
+    }
   });
 
-  installer
-    .connect(updater)
-    .connect(restarter);
+  beginner
+    .connect(install === true ? installer : null)
+    .connect(update !== null ? updater : null)
+    .connect(restart === true ? restarter : null)
+    .connect(ender);
 
-  return [installer, restarter];
+  return [beginner, ender];
 }

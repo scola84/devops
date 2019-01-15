@@ -1,16 +1,17 @@
 import { Commander, pkg } from '@scola/ssh';
+import { Worker } from '@scola/worker';
 
 export default function createOs({
   install = false,
   update = false,
   upgrade = false
 }) {
+  const beginner = new Worker();
+  const ender = new Worker();
+
   const upgrader = new Commander({
     description: 'Upgrade apt',
-    decide: () => {
-      return upgrade === true;
-    },
-    command: () => {
+    command() {
       return [
         pkg('update'),
         pkg('upgrade'),
@@ -21,10 +22,7 @@ export default function createOs({
 
   const installer = new Commander({
     description: 'Install apt packages',
-    decide: () => {
-      return install === true;
-    },
-    command: () => {
+    command() {
       return [
         pkg('install', 'unattended-upgrades'),
         pkg('install', 'build-essential')
@@ -34,10 +32,7 @@ export default function createOs({
 
   const updater = new Commander({
     description: 'Update ctl',
-    decide: () => {
-      return update === true;
-    },
-    command: (box, data) => {
+    command(box, data) {
       return [
         `hostnamectl set-hostname ${data.hostname}`,
         'timedatectl set-timezone UTC',
@@ -46,9 +41,11 @@ export default function createOs({
     }
   });
 
-  upgrader
-    .connect(installer)
-    .connect(updater);
+  beginner
+    .connect(upgrade === true ? upgrader : null)
+    .connect(install === true ? installer : null)
+    .connect(update === true ? updater : null)
+    .connect(ender);
 
-  return [upgrader, updater];
+  return [beginner, ender];
 }

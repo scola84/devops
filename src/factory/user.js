@@ -1,4 +1,5 @@
 import { Commander, sed } from '@scola/ssh';
+import { Worker } from '@scola/worker';
 
 export default function createUser({
   add = null,
@@ -7,15 +8,15 @@ export default function createUser({
   password = null,
   remove = null
 }) {
+  const beginner = new Worker();
+  const ender = new Worker();
+
   const adder = new Commander({
     description: 'Add user',
-    decide: () => {
-      return add !== null;
-    },
-    command: () => {
+    command() {
       return `adduser --gecos "" ${add.username}`;
     },
-    answers: (box, data, line) => {
+    answers(box, data, line) {
       return line.match(/password:$/) ?
         add.password || 'tty' :
         null;
@@ -24,23 +25,17 @@ export default function createUser({
 
   const grouper = new Commander({
     description: 'Add user to groups',
-    decide: () => {
-      return group !== null;
-    },
-    command: () => {
+    command() {
       return `usermod -aG ${group.name} ${group.username}`;
     }
   });
 
   const passwordUpdater = new Commander({
     description: 'Update user password',
-    decide: () => {
-      return password !== null;
-    },
-    command: () => {
+    command() {
       return `passwd ${password.username}`;
     },
-    answers: (box, data, line) => {
+    answers(box, data, line) {
       return line.match(/password:$/) ?
         password.password || 'tty' :
         null;
@@ -50,10 +45,7 @@ export default function createUser({
   const historyUpdater = new Commander({
     description: 'Update user history',
     sudo: false,
-    decide: () => {
-      return history !== null;
-    },
-    command: () => {
+    command() {
       const file = `/home/${history.username}/.bashrc`;
 
       const disable = sed(file, [
@@ -71,20 +63,18 @@ export default function createUser({
 
   const remover = new Commander({
     description: 'Remove user',
-    decide: () => {
-      return remove !== null;
-    },
-    command: () => {
+    command() {
       return `userdel -rfRZ ${remove.username}`;
     }
   });
 
-  adder
-    .connect(adder)
-    .connect(grouper)
-    .connect(passwordUpdater)
-    .connect(historyUpdater)
-    .connect(remover);
+  beginner
+    .connect(add !== null ? adder : null)
+    .connect(group !== null ? grouper : null)
+    .connect(password !== null ? passwordUpdater : null)
+    .connect(history !== null ? historyUpdater : null)
+    .connect(remove !== null ? remover : null)
+    .connect(ender);
 
-  return [adder, remover];
+  return [beginner, ender];
 }

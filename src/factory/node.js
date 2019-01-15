@@ -6,11 +6,9 @@ export default function createNode({
   const installer = new Commander({
     description: 'Install node',
     quiet: true,
-    decide: () => {
-      return install !== null;
-    },
-    command: () => {
-      const uri = `https://deb.nodesource.com/setup_${install.version}.x`;
+    command(box, data) {
+      const { version } = this.resolve(install, box, data);
+      const uri = `https://deb.nodesource.com/setup_${version}.x`;
 
       return [
         `curl -sL ${uri} | sudo bash`,
@@ -19,5 +17,5 @@ export default function createNode({
     }
   });
 
-  return installer;
+  return install !== null ? installer : null;
 }
