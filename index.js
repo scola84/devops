@@ -29,6 +29,8 @@ import {
 } from './src/factory';
 
 import {
+  createFilter,
+  installDependencies,
   resolveMigration
 } from './src/helper';
 
@@ -63,5 +65,7 @@ export {
 };
 
 export {
+  createFilter,
+  installDependencies,
   resolveMigration
 };
