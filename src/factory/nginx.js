@@ -11,7 +11,10 @@ export default function createNginx({
   const installer = new Commander({
     description: 'Install nginx',
     command() {
-      return pkg('install', 'nginx');
+      return [
+        pkg('install', 'nginx'),
+        'rm /etc/nginx/sites-enabled/default'
+      ];
     }
   });
 
