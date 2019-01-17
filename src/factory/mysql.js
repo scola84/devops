@@ -28,8 +28,8 @@ export default function createMysql({
 
       if (server) {
         if (typeof server === 'string') {
-          commands.push(`curl -OL https://dev.mysql.com/get/mysql-apt-config_${install.version}.deb`);
-          commands.push(`DEBIAN_FRONTEND=noninteractive dpkg -i mysql-apt-config_${install.version}.deb`);
+          commands.push(`curl -OL https://dev.mysql.com/get/mysql-apt-config_${server}.deb`);
+          commands.push(`DEBIAN_FRONTEND=noninteractive dpkg -i mysql-apt-config_${server}.deb`);
           commands.push(pkg('update'));
           commands.push(`rm mysql-apt-config_${server}.deb`);
         }
