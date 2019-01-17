@@ -29,6 +29,7 @@ import {
 } from './src/factory';
 
 import {
+  collectDirectories,
   createFilter,
   installDependencies,
   resolveMigration
@@ -65,6 +66,7 @@ export {
 };
 
 export {
+  collectDirectories,
   createFilter,
   installDependencies,
   resolveMigration
