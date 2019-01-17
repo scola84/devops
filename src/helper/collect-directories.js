@@ -2,13 +2,13 @@ import XRegExp from 'xregexp';
 import { readFileSync, readdirSync } from 'fs';
 import createFilter from './create-filter';
 
-export default function collectDirectories(box) {
-  if (box.directory && box.directory[0] === '@') {
-    return collectFromFile(box.directory);
+export default function collectDirectories(directory, recursive) {
+  if (directory && directory[0] === '@') {
+    return collectFromFile(directory);
   }
 
-  if (box.recursive === true) {
-    return collectFromDir(box.directory);
+  if (recursive === true) {
+    return collectFromDir(directory);
   }
 
   return [process.cwd()];
