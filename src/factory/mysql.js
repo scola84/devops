@@ -1,16 +1,17 @@
 import { Commander, ctl, pkg } from '@scola/ssh';
 import { Worker } from '@scola/worker';
-import { resolveMigration } from '../helper';
+import { resolveVersion } from '../helper';
 
 export default function createMysql({
-  restart = false,
   restrict = false,
   secure = false,
   add = null,
   create = null,
   install = null,
   migrate = null,
+  populate = null,
   replicate = null,
+  restart = null,
   root = {},
 }) {
   const beginner = new Worker();
@@ -56,7 +57,7 @@ export default function createMysql({
         'SET SQL_LOG_BIN = ON'
       ];
 
-      return `mysql -u ${root.username} -N -B -e '${query.join(';')}'`;
+      return `mysql -u ${root.username} -N -B -e $'${query.join(';')}'`;
     }
   });
 
@@ -72,7 +73,7 @@ export default function createMysql({
         'SET SQL_LOG_BIN = ON'
       ];
 
-      return `mysql -u ${root.username} -p -e '${query.join(';')}'`;
+      return `mysql -u ${root.username} -p -e $'${query.join(';')}'`;
     },
     answers(box, data, line) {
       return line.match(/password:$/) ?
@@ -99,7 +100,7 @@ export default function createMysql({
 
       query.push('SET SQL_LOG_BIN = ON');
 
-      return `mysql -u ${root.username} -p -e '${query.join(';')}'`;
+      return `mysql -u ${root.username} -p -e $'${query.join(';')}'`;
     },
     answers(box, data, line) {
       return line.match(/password:$/) ?
@@ -124,7 +125,7 @@ export default function createMysql({
 
       query.push('SET SQL_LOG_BIN = ON');
 
-      return `mysql -u ${root.username} -p -e '${query.join(';')}'`;
+      return `mysql -u ${root.username} -p -e $'${query.join(';')}'`;
     },
     answers(box, data, line) {
       return line.match(/password:$/) ?
@@ -144,17 +145,59 @@ export default function createMysql({
       }
 
       const commands = [];
-      const files = resolveMigration(migration);
+      const files = resolveVersion(migration);
       let query = null;
 
       files.forEach(({ file, name }) => {
+        file = file
+          .trim()
+          .replace(/'/g, '\\\'');
+
         query = [
           `USE ${name}`,
           file
         ];
 
         commands.push(
-          `mysql -u ${root.username} -p -e '${query.join(';')}'`
+          `mysql -u ${root.username} -p -e $'${query.join(';')}'`
+        );
+      });
+
+      return commands;
+    },
+    answers(box, data, line) {
+      return line.match(/password:$/) ?
+        root.password :
+        null;
+    }
+  });
+
+  const populator = new Commander({
+    description: 'Populate mysql',
+    confirm: true,
+    command(box, data) {
+      const population = this.resolve(populate, box, data);
+
+      if (population === null) {
+        return '';
+      }
+
+      const commands = [];
+      const files = resolveVersion(population);
+      let query = null;
+
+      files.forEach(({ file, name }) => {
+        file = file
+          .trim()
+          .replace(/'/g, '\\\'');
+
+        query = [
+          `USE ${name}`,
+          file
+        ];
+
+        commands.push(
+          `mysql -u ${root.username} -p -e $'${query.join(';')}'`
         );
       });
 
@@ -204,7 +247,7 @@ export default function createMysql({
       ];
 
       commands.push(
-        `mysql -u ${root.username} -p -e '${query.join(';')}'`
+        `mysql -u ${root.username} -p -e $'${query.join(';')}'`
       );
 
       return commands;
@@ -223,7 +266,17 @@ export default function createMysql({
       return box.start === true;
     },
     command() {
-      return ctl('restart', 'mysql');
+      const commands = [];
+
+      if (restart.server) {
+        commands.push(ctl('restart', 'mysql'));
+      }
+
+      if (restart.router) {
+        commands.push(ctl('restart', 'mysqlrouter'));
+      }
+
+      return commands;
     }
   });
 
@@ -234,8 +287,9 @@ export default function createMysql({
     .connect(add !== null ? adder : null)
     .connect(create !== null ? creator : null)
     .connect(migrate !== null ? migrator : null)
+    .connect(populate !== null ? populator : null)
     .connect(replicate !== null ? replicator : null)
-    .connect(restart === true ? restarter : null)
+    .connect(restart !== null ? restarter : null)
     .connect(ender);
 
   return [beginner, ender];

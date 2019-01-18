@@ -1,18 +1,22 @@
 import { readdirSync, readFileSync } from 'fs';
 
-export default function resolveMigration(migrate) {
+export default function resolveVersion(options) {
   const files = [];
 
   const {
     from = '',
       to = ''
-  } = migrate.version;
+  } = options.version;
 
-  const direction = to > from ?
-    'up' :
-    (to < from ? 'down' : '');
+  let direction = 'equal';
 
-  migrate.dir.forEach(({ dir, name }) => {
+  if (to > from) {
+    direction = 'up';
+  } else if (to < from) {
+    direction = 'down';
+  }
+
+  options.dir.forEach(({ dir, name }) => {
     let dirs = null;
 
     try {
@@ -27,11 +31,15 @@ export default function resolveMigration(migrate) {
 
       if (direction === 'up') {
         if (version > from && version <= to) {
-          postfix = 'up';
+          postfix = direction;
         }
       } else if (direction === 'down') {
         if (version <= from && version > to) {
-          postfix = 'down';
+          postfix = direction;
+        }
+      } else if (direction === 'equal') {
+        if (version === to) {
+          postfix = direction;
         }
       }
 

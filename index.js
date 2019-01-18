@@ -32,7 +32,7 @@ import {
   collectDirectories,
   createFilter,
   installDependencies,
-  resolveMigration
+  resolveVersion
 } from './src/helper';
 
 export {
@@ -69,5 +69,5 @@ export {
   collectDirectories,
   createFilter,
   installDependencies,
-  resolveMigration
+  resolveVersion
 };
