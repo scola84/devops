@@ -3,8 +3,10 @@ import { Worker } from '@scola/worker';
 
 export default function createPm2({
   install = false,
+  rotate = false,
   save = false,
   startup = false,
+  update = false,
   start = null
 }) {
   const beginner = new Worker();
@@ -13,7 +15,22 @@ export default function createPm2({
   const installer = new Commander({
     description: 'Install pm2',
     command() {
-      return 'npm install pm2 --global';
+      return 'npm install pm2@latest --global';
+    }
+  });
+
+  const updater = new Commander({
+    description: 'Update pm2',
+    sudo: false,
+    command() {
+      return 'pm2 update';
+    }
+  });
+
+  const rotator = new Commander({
+    description: 'Rotate pm2 logs',
+    command() {
+      return 'pm2 install pm2-logrotate';
     }
   });
 
@@ -57,6 +74,8 @@ export default function createPm2({
 
   beginner
     .connect(install === true ? installer : null)
+    .connect(update === true ? updater : null)
+    .connect(rotate === true ? rotator : null)
     .connect(startup === true ? startupper : null)
     .connect(start !== null ? starter : null)
     .connect(save === true ? saver : null)
