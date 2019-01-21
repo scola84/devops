@@ -1,5 +1,6 @@
 import { Commander, ctl, pkg } from '@scola/ssh';
 import { Worker } from '@scola/worker';
+import sprintf from 'sprintf-js';
 import { resolveVersion } from '../helper';
 
 export default function createMysql({
@@ -155,7 +156,7 @@ export default function createMysql({
 
         query = [
           `USE ${name}`,
-          file
+          sprintf.sprintf(file, migration.opts)
         ];
 
         commands.push(
@@ -193,7 +194,7 @@ export default function createMysql({
 
         query = [
           `USE ${name}`,
-          file
+          sprintf.sprintf(file, population.opts)
         ];
 
         commands.push(
