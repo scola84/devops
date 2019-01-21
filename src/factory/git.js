@@ -49,6 +49,7 @@ export default function createGit({
       items.forEach(({ path, name }) => {
         commands.push(`cd ${path}`);
         commands.push('git fetch');
+        commands.push('git checkout .');
         commands.push(`git checkout ${name}`);
         commands.push('cd ~');
       });
