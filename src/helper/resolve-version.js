@@ -27,6 +27,7 @@ export default function resolveVersion(options) {
 
     dirs.sort().forEach((version) => {
       let base = '';
+      let list = [];
       let postfix = '';
 
       if (direction === 'up') {
@@ -46,7 +47,13 @@ export default function resolveVersion(options) {
       if (postfix) {
         base = dir + '/' + version + '/' + postfix;
 
-        readdirSync(base).forEach((file) => {
+        try {
+          list = readdirSync(base);
+        } catch (e) {
+          list = [];
+        }
+
+        list.forEach((file) => {
           files.push({
             direction,
             file: String(readFileSync(base + '/' + file)),
