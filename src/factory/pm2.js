@@ -53,10 +53,13 @@ export default function createPm2({
       const commands = [];
       const items = this.resolve(start, box, data);
 
-      items.forEach(({ args = '', name, opts = [], path }) => {
+      items.forEach(({ args = '', name, node = '', opts = [], path }) => {
+        args = args ? `-- ${args}` : '';
+        node = node ? `--node-args="${node}"` : '';
+
         commands.push([
           `pm2 reload ${name}`,
-          `pm2 start ${opts.join(' ')} -n ${name} ${path} -- ${args}`
+          `pm2 start ${opts.join(' ')} -n ${name} ${path} ${node} ${args}`
         ].join(' || '));
       });
 
