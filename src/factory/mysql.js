@@ -147,6 +147,8 @@ export default function createMysql({
 
       const commands = [];
       const files = resolveVersion(migration);
+
+      let command = null;
       let query = null;
 
       files.forEach(({ file, name }) => {
@@ -155,13 +157,19 @@ export default function createMysql({
           .replace(/'/g, '\\\'');
 
         query = [
+          'SET SQL_LOG_BIN = OFF',
+          'SET GLOBAL SUPER_READ_ONLY = OFF',
           `USE ${name}`,
-          sprintf.sprintf(file, migration.opts)
+          sprintf.sprintf(file, migration.opts),
+          'SET SQL_LOG_BIN = ON'
         ];
 
-        commands.push(
-          `mysql -u ${root.username} -p -e $'${query.join(';')}'`
-        );
+        command = [
+          `mysql -u ${root.username} -p -e $'${query.join(';')}'`,
+          `echo 'Failed to migrate ${file}'`
+        ];
+
+        commands.push(command.join(' || '));
       });
 
       return commands;
@@ -193,6 +201,7 @@ export default function createMysql({
           .replace(/'/g, '\\\'');
 
         query = [
+          'SET GLOBAL SUPER_READ_ONLY = OFF',
           `USE ${name}`,
           sprintf.sprintf(file, population.opts)
         ];
