@@ -27,13 +27,6 @@ export default function createPm2({
     }
   });
 
-  const rotator = new Commander({
-    description: 'Rotate pm2 logs',
-    command() {
-      return 'pm2 install pm2-logrotate';
-    }
-  });
-
   const startupper = new Commander({
     description: 'Startup pm2',
     sudo: false,
@@ -78,7 +71,6 @@ export default function createPm2({
   beginner
     .connect(install === true ? installer : null)
     .connect(update === true ? updater : null)
-    .connect(rotate === true ? rotator : null)
     .connect(startup === true ? startupper : null)
     .connect(start !== null ? starter : null)
     .connect(save === true ? saver : null)
