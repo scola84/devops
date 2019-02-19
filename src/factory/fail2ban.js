@@ -30,7 +30,7 @@ export default function createFail2ban({
       } = this.resolve(update, box, data);
 
       let rules = [
-        ['action = %(action_.*)s', 'action = %(action_mw)s'],
+        ['action = %\\(action_.*\\)s', 'action = %(action_mw)s'],
         ['bantime.*', 'bantime = 10m'],
         ['port.*', `port = ${port}`, 'sshd']
       ];
