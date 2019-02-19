@@ -1,22 +1,32 @@
-import { Commander, pkg } from '@scola/ssh';
+import { Commander, key, pkg } from '@scola/ssh';
 import { Worker } from '@scola/worker';
 
 export default function createOs({
   install = false,
   update = false,
-  upgrade = false
+  upgrade = null
 }) {
   const beginner = new Worker();
   const ender = new Worker();
 
   const upgrader = new Commander({
     description: 'Upgrade apt',
-    command() {
-      return [
-        pkg('update'),
-        pkg('upgrade'),
-        pkg('autoremove')
-      ];
+    command(box, data) {
+      const {
+        key: keyId
+      } = this.resolve(upgrade, box, data);
+
+      const commands = [];
+
+      if (key) {
+        commands.push(key(keyId));
+      }
+
+      commands.push(pkg('update'));
+      commands.push(pkg('upgrade'));
+      commands.push(pkg('autoremove'));
+
+      return commands;
     }
   });
 
@@ -42,7 +52,7 @@ export default function createOs({
   });
 
   beginner
-    .connect(upgrade === true ? upgrader : null)
+    .connect(upgrade !== null ? upgrader : null)
     .connect(install === true ? installer : null)
     .connect(update === true ? updater : null)
     .connect(ender);
