@@ -21,15 +21,15 @@ const skip = [
   'util'
 ];
 
-export default function installDependencies(callback) {
-  recursive(process.cwd() + '/src', (error, files) => {
+export default function installDependencies(dir, reset, callback) {
+  recursive(process.cwd() + dir, (error, files) => {
     if (error) {
-      callback(error);
+      callback(error.code === 'ENOENT' ? null : error);
       return;
     }
 
     try {
-      install(files);
+      install(files, reset);
       callback();
     } catch (installError) {
       callback(installError);
@@ -37,7 +37,7 @@ export default function installDependencies(callback) {
   });
 }
 
-function install(files) {
+function install(files, reset) {
   const modules = new Set();
   const self = process.cwd().split('/').slice(-2).join('/');
 
@@ -66,14 +66,16 @@ function install(files) {
   const data = readFileSync(process.cwd() + '/package.json');
   const json = JSON.parse(String(data));
 
-  delete json.dependencies;
+  if (reset === true) {
+    delete json.dependencies;
+  }
 
   writeFileSync(process.cwd() + '/package.json', JSON.stringify(json));
 
   const options = { cwd: process.cwd(), stdio: 'inherit' };
   const names = Array.from(modules).sort().join(' ');
 
-  execSync('npm install ' + names, options);
+  execSync(`npm install ${names}`, options);
   execSync('rm -rf node_modules', options);
   execSync('rm package-lock.json', options);
 }
