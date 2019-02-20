@@ -3,7 +3,6 @@ import { Worker } from '@scola/worker';
 
 export default function createPm2({
   install = false,
-  rotate = false,
   save = false,
   startup = false,
   update = false,
