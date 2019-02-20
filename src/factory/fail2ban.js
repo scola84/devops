@@ -29,13 +29,14 @@ export default function createFail2ban({
         settings
       } = this.resolve(update, box, data);
 
-      let rules = [
-        ['action = %\\(action_.*\\)s', 'action = %(action_mw)s'],
-        ['bantime.*', 'bantime = 10m'],
-        ['port.*', `port = ${port}`, 'sshd']
-      ];
+      let rules = [];
+
+      if (port) {
+        rules.push(['port.*', `port = ${port}`, 'sshd']);
+      }
 
       if (from && to) {
+        rules.push(['action = %\\(action_.*\\)s', 'action = %(action_mw)s']);
         rules.push(['sender.*', `sender = ${from}`]);
         rules.push(['destemail.*', `destemail = ${to}`]);
       }
