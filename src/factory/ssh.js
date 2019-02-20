@@ -55,7 +55,6 @@ export default function createSsh({
       } = this.resolve(harden, box, data);
 
       let rules = [
-        ['#?Port.*', `Port ${port}`],
         ['#?PermitRootLogin.*', 'PermitRootLogin no'],
         ['#?PasswordAuthentication.*', 'PasswordAuthentication no'],
         ['#?IgnoreRhosts.*', 'IgnoreRhosts yes'],
@@ -68,6 +67,10 @@ export default function createSsh({
         ['#?ClientAliveInterval.*', 'ClientAliveInterval 900'],
         ['#?ClientAliveCountMax.*', 'ClientAliveCountMax 0']
       ];
+
+      if (port) {
+        rules.push(['#?Port.*', `Port ${port}`]);
+      }
 
       if (settings) {
         rules = rules.concat(settings);
