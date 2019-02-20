@@ -35,7 +35,8 @@ export default function createOs({
     command() {
       return [
         pkg('install', 'unattended-upgrades'),
-        pkg('install', 'build-essential')
+        pkg('install', 'build-essential'),
+        pkg('install', 'logrotate')
       ];
     }
   });
