@@ -14,6 +14,7 @@ export default function createMysql({
   replicate = null,
   restart = null,
   root = {},
+  user = {}
 }) {
   const beginner = new Worker();
   const ender = new Worker();
@@ -114,23 +115,17 @@ export default function createMysql({
     description: 'Create mysql databases',
     command(box, data) {
       const items = this.resolve(create, box, data);
-
-      const query = [
-        'SET SQL_LOG_BIN = OFF',
-        'SET GLOBAL SUPER_READ_ONLY = OFF'
-      ];
+      const query = [];
 
       items.forEach(({ name }) => {
         query.push(`CREATE DATABASE IF NOT EXISTS ${name}`);
       });
 
-      query.push('SET SQL_LOG_BIN = ON');
-
-      return `mysql -u ${root.username} -p -e $'${query.join(';')}'`;
+      return `mysql -u ${user.username} -p -e $'${query.join(';')}'`;
     },
     answers(box, data, line) {
       return line.match(/password:$/) ?
-        root.password :
+        user.password :
         null;
     }
   });
@@ -157,15 +152,12 @@ export default function createMysql({
           .replace(/'/g, '\\\'');
 
         query = [
-          'SET SQL_LOG_BIN = OFF',
-          'SET GLOBAL SUPER_READ_ONLY = OFF',
           `USE ${name}`,
-          sprintf.sprintf(file, migration.opts),
-          'SET SQL_LOG_BIN = ON'
+          sprintf.sprintf(file, migration.opts)
         ];
 
         command = [
-          `mysql -u ${root.username} -p -e $'${query.join(';')}'`,
+          `mysql -u ${user.username} -p -e $'${query.join(';')}'`,
           `echo 'Failed to migrate ${file}'`
         ];
 
@@ -176,7 +168,7 @@ export default function createMysql({
     },
     answers(box, data, line) {
       return line.match(/password:$/) ?
-        root.password :
+        user.password :
         null;
     }
   });
@@ -201,13 +193,12 @@ export default function createMysql({
           .replace(/'/g, '\\\'');
 
         query = [
-          'SET GLOBAL SUPER_READ_ONLY = OFF',
           `USE ${name}`,
           sprintf.sprintf(file, population.opts)
         ];
 
         commands.push(
-          `mysql -u ${root.username} -p -e $'${query.join(';')}'`
+          `mysql -u ${user.username} -p -e $'${query.join(';')}'`
         );
       });
 
@@ -215,7 +206,7 @@ export default function createMysql({
     },
     answers(box, data, line) {
       return line.match(/password:$/) ?
-        root.password :
+        user.password :
         null;
     }
   });
