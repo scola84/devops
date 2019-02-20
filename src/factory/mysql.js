@@ -53,8 +53,8 @@ export default function createMysql({
     quiet: true,
     command() {
       const query = [
-        'SET SQL_LOG_BIN = OFF',
         'SET GLOBAL SUPER_READ_ONLY = OFF',
+        'SET SQL_LOG_BIN = OFF',
         `ALTER USER "${root.username}"@"localhost" IDENTIFIED WITH mysql_native_password BY "${root.password}"`,
         'SET SQL_LOG_BIN = ON'
       ];
@@ -68,7 +68,6 @@ export default function createMysql({
     command() {
       const query = [
         'SET SQL_LOG_BIN = OFF',
-        'SET GLOBAL SUPER_READ_ONLY = OFF',
         `DELETE FROM mysql.user WHERE User="${root.username}" AND Host NOT IN ("localhost", "127.0.0.1", "::1")`,
         'DELETE FROM mysql.user WHERE User=""',
         'DROP DATABASE IF EXISTS test',
@@ -91,7 +90,6 @@ export default function createMysql({
 
       const query = [
         'SET SQL_LOG_BIN = OFF',
-        'SET GLOBAL SUPER_READ_ONLY = OFF'
       ];
 
       items.forEach(({ extra = '', host, username, password, privileges }) => {
@@ -108,6 +106,26 @@ export default function createMysql({
       return line.match(/password:$/) ?
         root.password :
         null;
+    }
+  });
+
+  const poller = new Commander({
+    description: 'Poll mysql',
+    decide(box, data) {
+      return data.roles.dbh.bootstrap === true;
+    },
+    command(box, data) {
+      return `mysql -u ${root.username} -p -e $'SELECT MEMBER_HOST FROM performance_schema.replication_group_members WHERE MEMBER_HOST = "${data.server.networks.v4.eth1}" AND MEMBER_STATE = "ONLINE"'`;
+    },
+    answers(box, data, line) {
+      return line.match(/password:$/) ?
+        root.password :
+        null;
+    },
+    poll(box, data, lines) {
+      lines = lines.join('');
+      return lines.match(data.server.networks.v4.eth1) === null ?
+        5000 : true;
     }
   });
 
@@ -242,7 +260,6 @@ export default function createMysql({
 
       const query = [
         'SET SQL_LOG_BIN = OFF',
-        'SET GLOBAL SUPER_READ_ONLY = OFF',
         `CHANGE MASTER TO MASTER_USER = "${replication.mysql.username}", MASTER_PASSWORD = "${replication.mysql.password}" FOR CHANNEL "group_replication_recovery"`,
         'SET SQL_LOG_BIN = ON'
       ];
@@ -286,6 +303,7 @@ export default function createMysql({
     .connect(restrict === true ? restrictor : null)
     .connect(secure === true ? securer : null)
     .connect(add !== null ? adder : null)
+    .connect(create !== null ? poller : null)
     .connect(create !== null ? creator : null)
     .connect(migrate !== null ? migrator : null)
     .connect(populate !== null ? populator : null)
