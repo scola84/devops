@@ -57,6 +57,7 @@ export default function resolveVersion(options) {
           files.push({
             direction,
             file: String(readFileSync(base + '/' + file)),
+            fileName: file,
             name,
             version
           });

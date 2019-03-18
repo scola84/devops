@@ -164,7 +164,7 @@ export default function createMysql({
       let command = null;
       let query = null;
 
-      files.forEach(({ file, name }) => {
+      files.forEach(({ file, name, fileName }) => {
         file = file
           .trim()
           .replace(/'/g, '\\\'');
@@ -176,7 +176,7 @@ export default function createMysql({
 
         command = [
           `mysql -u ${user.username} -p -e $'${query.join(';')}'`,
-          `echo 'Failed to migrate ${file}'`
+          `echo 'Failed to migrate ${fileName}'`
         ];
 
         commands.push(command.join(' || '));
@@ -203,9 +203,11 @@ export default function createMysql({
 
       const commands = [];
       const files = resolveVersion(population);
+
+      let command = null;
       let query = null;
 
-      files.forEach(({ file, name }) => {
+      files.forEach(({ file, name, fileName }) => {
         file = file
           .trim()
           .replace(/'/g, '\\\'');
@@ -215,9 +217,12 @@ export default function createMysql({
           sprintf.sprintf(file, population.opts)
         ];
 
-        commands.push(
-          `mysql -u ${user.username} -p -e $'${query.join(';')}'`
-        );
+        command = [
+          `mysql -u ${user.username} -p -e $'${query.join(';')}'`,
+          `echo 'Failed to populate ${fileName}'`
+        ];
+
+        commands.push(command.join(' || '));
       });
 
       return commands;
