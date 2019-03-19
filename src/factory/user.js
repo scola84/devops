@@ -50,7 +50,9 @@ export default function createUser({
 
       const disable = sed(file, [
         ['set +o history']
-      ]);
+      ], {
+        escape: true
+      });
 
       return [
         disable,
