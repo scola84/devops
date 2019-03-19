@@ -1,4 +1,4 @@
-import { Commander, pkg, sed } from '@scola/ssh';
+import { Commander, chmod, chown, pkg, sed } from '@scola/ssh';
 import { Worker } from '@scola/worker';
 
 export default function createMount({
@@ -20,13 +20,20 @@ export default function createMount({
 
   const creator = new Commander({
     description: 'Create mount',
-    quiet: true,
     command(box, data) {
       const commands = [];
       const items = this.resolve(update, box, data);
 
-      items.forEach(({ target }) => {
+      items.forEach(({ mod, own, target }) => {
         commands.push(`mkdir -p ${target}`);
+
+        if (mod) {
+          commands.push(chmod(target, mod));
+        }
+
+        if (own) {
+          commands.push(chown(target, own));
+        }
       });
 
       return commands;
