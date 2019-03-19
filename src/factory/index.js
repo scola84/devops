@@ -3,6 +3,7 @@ import createFail2ban from './fail2ban';
 import createGit from './git';
 import createLogwatch from './logwatch';
 import createMkdir from './mkdir';
+import createMount from './mount';
 import createMysql from './mysql';
 import createNginx from './nginx';
 import createNode from './node';
@@ -24,6 +25,7 @@ export {
   createGit,
   createLogwatch,
   createMkdir,
+  createMount,
   createMysql,
   createNginx,
   createNode,
