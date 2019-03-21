@@ -1,8 +1,27 @@
-import { Commander, sed } from '@scola/ssh';
+import { Commander, ctl, sed } from '@scola/ssh';
+import { Worker } from '@scola/worker';
 
 export default function createSysctl({
-  update = false
+  update = false,
+  execute = null
 }) {
+  const beginner = new Worker();
+  const ender = new Worker();
+
+  const executer = new Commander({
+    description: 'Execute sysctl',
+    command(box, data) {
+      const commands = [];
+      const items = this.resolve(execute, box, data);
+
+      items.forEach(({ action, name }) => {
+        commands.push(ctl(action, name));
+      });
+
+      return commands;
+    }
+  });
+
   const updater = new Commander({
     description: 'Update sysctl',
     quiet: true,
@@ -21,5 +40,10 @@ export default function createSysctl({
     }
   });
 
-  return update === true ? updater : null;
+  beginner
+    .connect(update === true ? updater : null)
+    .connect(execute !== null ? executer : null)
+    .connect(ender);
+
+  return [beginner, ender];
 }
