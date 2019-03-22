@@ -8,7 +8,7 @@
   "main": "./index.js",
   "jsnext:main": "./index.js",
   "dependencies": {
-    "@scola/ssh": "^1.4.5",
+    "@scola/ssh": "^1.4.6",
     "@scola/worker": "^2.14.3",
     "bytes": "^3.1.0",
     "lodash-es": "^4.17.11",
