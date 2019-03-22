@@ -19,11 +19,9 @@ import {
   createNpm,
   createNtp,
   createOs,
-  createPm2,
   createSed,
   createSendmail,
   createSsh,
-  createSwap,
   createSysctl,
   createUfw,
   createUser
@@ -57,11 +55,9 @@ export {
   createNpm,
   createNtp,
   createOs,
-  createPm2,
   createSed,
   createSendmail,
   createSsh,
-  createSwap,
   createSysctl,
   createUfw,
   createUser

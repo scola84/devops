@@ -10,11 +10,9 @@ import createNode from './node';
 import createNpm from './npm';
 import createNtp from './ntp';
 import createOs from './os';
-import createPm2 from './pm2';
 import createSed from './sed';
 import createSendmail from './sendmail';
 import createSsh from './ssh';
-import createSwap from './swap';
 import createSysctl from './sysctl';
 import createUfw from './ufw';
 import createUser from './user';
@@ -32,11 +30,9 @@ export {
   createNpm,
   createNtp,
   createOs,
-  createPm2,
   createSed,
   createSendmail,
   createSsh,
-  createSwap,
   createSysctl,
   createUfw,
   createUser
