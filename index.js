@@ -23,6 +23,7 @@ import {
   createSendmail,
   createSsh,
   createSysctl,
+  createSwap,
   createUfw,
   createUser
 } from './src/factory';
@@ -59,6 +60,7 @@ export {
   createSendmail,
   createSsh,
   createSysctl,
+  createSwap,
   createUfw,
   createUser
 };

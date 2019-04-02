@@ -14,6 +14,7 @@ import createSed from './sed';
 import createSendmail from './sendmail';
 import createSsh from './ssh';
 import createSysctl from './sysctl';
+import createSwap from './swap';
 import createUfw from './ufw';
 import createUser from './user';
 
@@ -34,6 +35,7 @@ export {
   createSendmail,
   createSsh,
   createSysctl,
+  createSwap,
   createUfw,
   createUser
 };
