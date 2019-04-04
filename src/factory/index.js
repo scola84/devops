@@ -10,6 +10,7 @@ import createNode from './node';
 import createNpm from './npm';
 import createNtp from './ntp';
 import createOs from './os';
+import createRm from './rm';
 import createSed from './sed';
 import createSendmail from './sendmail';
 import createSsh from './ssh';
@@ -31,6 +32,7 @@ export {
   createNpm,
   createNtp,
   createOs,
+  createRm,
   createSed,
   createSendmail,
   createSsh,
