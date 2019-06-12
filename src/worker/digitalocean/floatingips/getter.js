@@ -22,6 +22,7 @@ export default class DigitaloceanFloatingipsGetter extends Worker {
       },
       headers: {
         'Authorization': token,
+        'Connection': 'close',
         'Content-Type': 'application/json'
       },
       method: 'GET',

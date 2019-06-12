@@ -23,6 +23,7 @@ export default class DigitaloceanDropletsGetter extends Worker {
       },
       headers: {
         'Authorization': token,
+        'Connection': 'close',
         'Content-Type': 'application/json'
       },
       method: 'GET',

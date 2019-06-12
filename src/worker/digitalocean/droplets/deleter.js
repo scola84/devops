@@ -18,6 +18,7 @@ export default class DigitaloceanDropletDeleter extends Worker {
       },
       headers: {
         'Authorization': token,
+        'Connection': 'close',
         'Content-Type': 'application/json'
       },
       method: 'DELETE',

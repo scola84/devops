@@ -22,6 +22,7 @@ export default class DigitaloceanDropletsPoster extends Worker {
       },
       headers: {
         'Authorization': token,
+        'Connection': 'close',
         'Content-Type': 'application/json'
       },
       method: 'POST',
